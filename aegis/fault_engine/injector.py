@@ -7,6 +7,7 @@ maintains audit logs, and handles clean rollback to baseline golden weights.
 
 from dataclasses import dataclass
 from typing import Dict, List, Optional
+import numpy as np
 import torch
 import torch.nn as nn
 
