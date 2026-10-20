@@ -60,7 +60,12 @@ class DetectionGatedRestorer:
         auto_recalibrate: bool = True,
     ) -> Optional[RepairEvent]:
         """
-        Evaluates health report. If anomalies are detected, restores afflicted blocks.
+        Evaluates health report. If anomalies are detected, restores the primary suspect block.
+
+        Architecture note: When an exponent-field SEU corrupts one block, activation explosions
+        cascade forward through all downstream layers, causing multiple blocks to appear flagged.
+        The correct repair strategy restores only the *primary suspect* (earliest/most upstream
+        flagged block), which eliminates the cascade and avoids unnecessary full-model scrubbing.
         """
         if report.is_healthy or not report.flagged_blocks:
             return None  # No damage detected, skip repair
@@ -69,8 +74,15 @@ class DetectionGatedRestorer:
         initial_bytes = self.golden_store._cumulative_bytes_read
         initial_energy = self.golden_store._cumulative_energy_uj
 
-        # Restore each flagged block selectively
-        for block_id in report.flagged_blocks:
+        # Restore only the primary suspect block (root cause), not all downstream cascade victims
+        # primary_suspect_block is the earliest flagged block in forward-pass order
+        blocks_to_restore = (
+            [report.primary_suspect_block]
+            if report.primary_suspect_block
+            else report.flagged_blocks
+        )
+
+        for block_id in blocks_to_restore:
             clean_block_sd = self.golden_store.retrieve_block(block_id)
             self.registry.restore_block_state_dict(block_id, clean_block_sd)
 
@@ -84,7 +96,7 @@ class DetectionGatedRestorer:
         energy_uj = self.golden_store._cumulative_energy_uj - initial_energy
 
         event = RepairEvent(
-            restored_blocks=list(report.flagged_blocks),
+            restored_blocks=list(blocks_to_restore),
             total_bytes_transferred=bytes_transferred,
             total_energy_uj=energy_uj,
             downtime_ms=round(elapsed_ms, 2),

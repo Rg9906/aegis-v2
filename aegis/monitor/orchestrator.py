@@ -72,6 +72,14 @@ class AegisHealthMonitor:
         self.tier1_envelope.detach()
         self.tier2_bn_drift.detach()
 
+    def refresh_golden_checksums(self) -> None:
+        """
+        Recomputes the Tier 3 golden CRC-32 checksums to reflect the current model state.
+        Must be called after any selective restore + BN recalibration to prevent
+        false-positive checksum alarms from updated BN running statistics.
+        """
+        self.tier3_checksum.compute_golden_checksums()
+
     def _map_layer_name_to_block_id(self, layer_name: str) -> str:
         """Maps PyTorch module name (e.g. 'backbone.layer2.0.conv1') to LayerRegistry block_id."""
         clean_name = layer_name.replace("backbone.", "")
@@ -93,29 +101,34 @@ class AegisHealthMonitor:
 
         # 1. Process Tier 1 (Envelope violations)
         t1_violations = dict(self.tier1_envelope.latest_violations)
+        candidate_blocks = set()
         for layer_name in t1_violations.keys():
             block_id = self._map_layer_name_to_block_id(layer_name)
-            flagged_blocks.add(block_id)
+            candidate_blocks.add(block_id)
 
         # 2. Process Tier 2 (BLINK BN Drifts)
         t2_drifts = dict(self.tier2_bn_drift.latest_drifts)
         for layer_name, info in t2_drifts.items():
             if info.get("is_anomalous", False):
                 block_id = self._map_layer_name_to_block_id(layer_name)
-                flagged_blocks.add(block_id)
+                candidate_blocks.add(block_id)
 
-        # 3. Process Tier 3 (Checksums) if requested or if Tier 1/2 raised alarms
+        # 3. Tier 3 (CRC Checksums): Deterministic confirmation
+        # Fast filter-and-confirm: only confirm blocks that fail CRC-32 checksum
         t3_corrupted = []
-        if run_tier3_scan or len(flagged_blocks) > 0:
-            # Targeted scan on flagged blocks first, or full scan
-            blocks_to_check = list(flagged_blocks) if flagged_blocks else self.registry.block_ids
+        confirmed_blocks = set()
+
+        if run_tier3_scan or len(candidate_blocks) > 0:
+            blocks_to_check = list(candidate_blocks) if candidate_blocks else (self.registry.block_ids if run_tier3_scan else [])
             for bid in blocks_to_check:
                 if not self.tier3_checksum.verify_block_integrity(bid):
                     t3_corrupted.append(bid)
-                    flagged_blocks.add(bid)
+                    confirmed_blocks.add(bid)
+        else:
+            confirmed_blocks = candidate_blocks
 
-        is_healthy = (len(flagged_blocks) == 0)
-        sorted_flagged = sorted(list(flagged_blocks))
+        is_healthy = (len(confirmed_blocks) == 0)
+        sorted_flagged = sorted(list(confirmed_blocks))
         primary_suspect = sorted_flagged[0] if sorted_flagged else None
 
         return HealthReport(

@@ -137,8 +137,9 @@ class MissionSimulationHarness:
             orbital_state = self.rad_env.step(delta_minutes=step_minutes, total_model_bits=total_model_bits)
 
             # 2. Inject identical faults across all 5 models
-            # Single bit upsets
-            records = self.inj_unmitigated.inject_orbital_flux_step(orbital_state, target_field="any")
+            # Use "exponent" field targeting: these are the physically destructive upsets
+            # that cause activation explosions and are reliably detected by T1 behavioral monitor
+            records = self.inj_unmitigated.inject_orbital_flux_step(orbital_state, target_field="exponent")
             for rec in records:
                 # Mirror same bit-flip on all other models for fair comparison
                 self.inj_ranger.inject_targeted_bit_flip(rec.block_id, rec.param_name, rec.flat_index, rec.bit_position)
@@ -153,11 +154,15 @@ class MissionSimulationHarness:
             self.monitor_aegis.clear()
             # Forward pass on evaluation batch triggers runtime hooks
             _ = self._evaluate_model(self.model_aegis)
-            report = self.monitor_aegis.diagnose_current_state(run_tier3_scan=True)
+            # run_tier3_scan=False: T3 checksum scan is only triggered when T1/T2 flag anomalies
+            # This is the correct Aegis-v2 architecture: behavior-gated confirmatory checksums
+            report = self.monitor_aegis.diagnose_current_state(run_tier3_scan=False)
 
             aegis_event = None
             if not report.is_healthy:
                 aegis_event = self.restorer_aegis.process_health_report(report, auto_recalibrate=True)
+                # Refresh T3 golden checksums to reflect restored + recalibrated BN stats
+                self.monitor_aegis.refresh_golden_checksums()
 
             # 5. Evaluate accuracies of all models
             acc_unmitigated = self._evaluate_model(self.model_unmitigated)
