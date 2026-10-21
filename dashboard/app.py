@@ -16,7 +16,7 @@ import streamlit as st
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 
-from aegis.reporting import STRATEGIES, SUMMARY_KEYS, list_campaigns, load_seed_runs, pareto_points  # noqa: E402
+from aegis.reporting import STRATEGIES, SUMMARY_KEYS, list_campaigns, load_seed_runs, pareto_points, strategies_present  # noqa: E402
 
 RESULTS_DIR = os.path.join(ROOT, "results")
 LABELS = [label for _, label, _, _ in STRATEGIES]
@@ -41,6 +41,7 @@ with st.sidebar:
     seed_choice = st.selectbox("Seed", seed_options)
 
 summaries = [r["summary"] for r in runs.values()]
+PRESENT = strategies_present(runs)
 
 
 def telemetry_frame(seed_choice: str) -> pd.DataFrame:
@@ -81,9 +82,9 @@ tab_acc, tab_pareto, tab_faults, tab_table = st.tabs(
 
 # ---- Accuracy over time -----------------------------------------------------------------------
 with tab_acc:
-    long = df.melt(id_vars=["elapsed_days"], value_vars=[a for a, *_ in STRATEGIES],
+    long = df.melt(id_vars=["elapsed_days"], value_vars=[a for a, *_ in PRESENT],
                    var_name="attr", value_name="accuracy")
-    long["strategy"] = long["attr"].map({a: label for a, label, *_ in STRATEGIES})
+    long["strategy"] = long["attr"].map({a: label for a, label, *_ in PRESENT})
     color = alt.Color("strategy:N", scale=alt.Scale(domain=LABELS, range=COLORS),
                       legend=alt.Legend(orient="top", title=None))
     hover = alt.selection_point(fields=["elapsed_days"], nearest=True, on="pointerover", empty=False)
@@ -184,7 +185,7 @@ with tab_faults:
 # ---- Table view -------------------------------------------------------------------------------
 with tab_table:
     rows = []
-    for attr, label, *_ in STRATEGIES:
+    for attr, label, *_ in PRESENT:
         key = SUMMARY_KEYS[attr]
         vals = [s["mean_accuracy"][key] for s in summaries]
         finals = [s["final_accuracy"][key] for s in summaries]

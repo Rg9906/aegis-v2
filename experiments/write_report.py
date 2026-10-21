@@ -32,6 +32,7 @@ T_CRIT_95 = {1: 12.706, 2: 4.303, 3: 3.182, 4: 2.776, 5: 2.571, 6: 2.447, 7: 2.3
 
 ACC_ROWS: Tuple[Tuple[str, str], ...] = (
     ("aegis_v2", "Aegis-v2 selective restore"),
+    ("aegis_audit", "Aegis-v2 + CRC audit"),
     ("ranger_aegis", "Ranger + Aegis-v2"),
     ("periodic_scrubbing", "Periodic scrubbing (12 h)"),
     ("ground_uplink", "Ground uplink reload"),
@@ -39,7 +40,7 @@ ACC_ROWS: Tuple[Tuple[str, str], ...] = (
     ("blink_recentering", "BLINK re-centering"),
     ("unmitigated", "Unmitigated"),
 )
-MONITORED = ("aegis_v2", "ranger_aegis", "ground_uplink")
+MONITORED = ("aegis_v2", "ranger_aegis", "ground_uplink", "aegis_audit")
 
 
 def mean_ci(values: Sequence[float]) -> Tuple[float, float]:
@@ -85,8 +86,10 @@ def energy_per_day_mj(runs: Dict[int, dict]) -> Tuple[Dict[str, Tuple[float, flo
         arch = summaries[0].get("arch", "resnet18")
         per_step_uj = monitor_ops_per_batch(arch) * DEFAULT_BUDGET_CONFIG.monitor_energy_pj_per_op / 1e6
     out = {}
-    keys = ["aegis_v2", "ranger_aegis", "ground_uplink", "periodic_scrubbing"]
+    keys = ["aegis_v2", "ranger_aegis", "ground_uplink", "periodic_scrubbing", "aegis_audit"]
     for key in keys:
+        if key not in summaries[0]["energy_consumed_uj"]:
+            continue
         vals = []
         for run in runs.values():
             s = run["summary"]
@@ -164,8 +167,7 @@ def build_report(name: str, runs: Dict[int, dict]) -> str:
     points = pareto_points(runs)
     by_name = {p["strategy"]: p for p in points}
     energy, energy_added = energy_per_day_mj(runs)
-    energy_key = {"aegis_v2": "aegis_v2", "ranger_aegis": "ranger_aegis", "ground_uplink": "ground_uplink",
-                  "periodic_scrubbing": "periodic_scrubbing"}
+    energy_key = {k: k for k in ("aegis_v2", "ranger_aegis", "ground_uplink", "periodic_scrubbing", "aegis_audit")}
 
     lines += ["## Accuracy, traffic and energy", "",
               "| Strategy | Mean acc. (%) | Final acc. (%) | MB/day | Energy (mJ/day) |",
@@ -203,7 +205,7 @@ def build_report(name: str, runs: Dict[int, dict]) -> str:
     lines.append("")
 
     lines += ["## Bandwidth verdict", ""]
-    for label in ("Aegis-v2 selective restore", "Ranger + Aegis-v2"):
+    for label in ("Aegis-v2 selective restore", "Aegis-v2 + CRC audit", "Ranger + Aegis-v2"):
         if label not in by_name:
             continue
         ref = by_name[label]

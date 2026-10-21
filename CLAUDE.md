@@ -56,6 +56,12 @@ recalibration) · `aegis/baselines` · `aegis/simulation` (mission harness, conf
   the held-out chips and `run_campaign.py` refuses a split that is not inside them.
 - Monitoring energy charges T1/T2 hook compute only on the monitored incoming batch (evaluation
   passes go through the same hooks but are measurement, not mission work).
+- T3 also CRC-checks the block upstream of the earliest T1/T2 alarm: T1 hooks conv outputs and T2
+  hooks BN inputs, so a BN-parameter fault (seed 1: sign flip on `layer3.0.bn2.running_var` -> NaN)
+  first shows one block downstream and the culprit was never checked (accuracy stuck at 10%).
+- Behavioral detection cannot see sub-threshold faults (seed 1, step 49: a weight 0.106 -> 1.7 cost
+  17 points with no alarm). The "Aegis-v2 + CRC audit" strategy (`--audit-hours`, default 6)
+  CRC-scans all blocks periodically and restores mismatches; report it alongside plain Aegis-v2.
 - Orbit: default `--orbit tle` = real Sentinel-2A track (SGP4 on `orbits/sentinel2a.tle`, CelesTrak)
   with the SAA defined physically as low |B| from IGRF (rate ramps 20,000 -> 18,000 nT). This
   yields ~80 SAA-core min/day and ~82% of upsets in the SAA.

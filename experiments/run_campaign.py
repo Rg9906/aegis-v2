@@ -26,8 +26,8 @@ from aegis.models.factory import ARCHITECTURES, assert_held_out, load_backbone  
 from aegis.simulation.mission_sim import MissionSimulationHarness  # noqa: E402
 
 STRATEGIES = ("unmitigated", "ranger_clipping", "blink_recentering", "periodic_scrubbing", "aegis_v2",
-              "ranger_aegis", "ground_uplink")
-REPAIRING = ("periodic_scrubbing", "aegis_v2", "ranger_aegis", "ground_uplink")
+              "ranger_aegis", "ground_uplink", "aegis_audit")
+REPAIRING = ("periodic_scrubbing", "aegis_v2", "ranger_aegis", "ground_uplink", "aegis_audit")
 
 
 def parse_args() -> argparse.Namespace:
@@ -47,6 +47,8 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--golden-int8", action="store_true",
                    help="Aegis golden copy stored as per-channel INT8 (lossy restores)")
     p.add_argument("--recalibrate", action="store_true", help="Enable post-restore BN recalibration")
+    p.add_argument("--audit-hours", type=float, default=6.0,
+                   help="Full CRC audit period for the Aegis-v2 + audit replica (0 disables audits)")
     p.add_argument("--arch", choices=ARCHITECTURES, default="resnet18")
     p.add_argument("--checkpoint", default=None, help="Weights file (default per architecture)")
     p.add_argument("--device", default="auto", help="auto | cpu | cuda")
@@ -93,6 +95,7 @@ def main() -> None:
             golden_int8=args.golden_int8,
             orbit=args.orbit,
             tle_path=args.tle,
+            aegis_audit_hours=args.audit_hours,
         )
         print(f"\n[seed {seed}] clean accuracy {sim.clean_accuracy:.4f}")
         sim.run_simulation(total_days=args.days, step_minutes=args.step_minutes, progress=True)

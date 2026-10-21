@@ -21,7 +21,7 @@ from aegis.fault_engine.ieee754 import FLOAT32_EXPONENT_MSB, TargetFieldType
 from aegis.fault_engine.injector import ModelFaultInjector
 from aegis.fault_engine.radiation_model import LEORadiationEnvironment
 from aegis.models.layer_registry import LayerRegistry
-from aegis.monitor.orchestrator import AegisHealthMonitor
+from aegis.monitor.orchestrator import AegisHealthMonitor, HealthReport
 from aegis.repair.golden_store import CompressedGoldenStore
 from aegis.repair.recalibrate import BNRecalibrator
 from aegis.repair.selective_restore import DetectionGatedRestorer
@@ -48,16 +48,19 @@ class TimeStepTelemetry:
     acc_aegis: float
     acc_ranger_aegis: float
     acc_uplink: float
+    acc_aegis_audit: float
     energy_aegis_uj: float
     energy_scrub_uj: float
     energy_ranger_aegis_uj: float
     energy_uplink_uj: float
+    energy_aegis_audit_uj: float
     monitor_energy_aegis_uj: float
     monitor_compute_energy_aegis_uj: float
     bytes_aegis: int
     bytes_scrub: int
     bytes_ranger_aegis: int
     bytes_uplink: int
+    bytes_aegis_audit: int
     scrub_executed: bool
     aegis_alarm: bool
     aegis_restored_blocks: List[str] = field(default_factory=list)
@@ -78,7 +81,8 @@ class MissionSimulationHarness:
       4. Aegis-v2 observes one unlabeled incoming batch (label-free monitor) and, if alarmed,
          restores the CRC-confirmed blocks from the golden store. Ranger+Aegis does the same
          while also clamping activations; Ground uplink detects the same way but can only
-         reload during ground-station contacts.
+         reload during ground-station contacts. Aegis+audit additionally CRC-scans every block
+         every `aegis_audit_hours` and restores any mismatch (catches silent sub-threshold faults).
       5. All replicas are scored on the labeled evaluation set.
 
     Aegis-family energy = golden-store reads + DRAM writes + DRAM reads for T3 CRC scans
@@ -103,6 +107,7 @@ class MissionSimulationHarness:
         golden_int8: bool = False,
         orbit: str = "periodic",
         tle_path: Optional[str] = None,
+        aegis_audit_hours: float = 6.0,
     ):
         self.val_images = val_images
         self.val_labels = val_labels
@@ -206,6 +211,20 @@ class MissionSimulationHarness:
         self.monitor_uplink.attach()
         self.uplink = GroundUplinkReloader(self.reg_uplink, CompressedGoldenStore(self.reg_uplink))
 
+        # Aegis-v2 + periodic full T3 audit: behavioral detectors miss sub-threshold faults (e.g. a
+        # 16x weight that costs ~17 accuracy points without tripping T1/T2), so every
+        # `aegis_audit_hours` all blocks are CRC-scanned and any mismatch restored.
+        self.aegis_audit_hours = aegis_audit_hours
+        self.model_audit = copy.deepcopy(base_model).eval()
+        self.reg_audit = LayerRegistry(self.model_audit)
+        self.inj_audit = ModelFaultInjector(self.model_audit, self.reg_audit)
+        self.store_audit = CompressedGoldenStore(self.reg_audit, quantize_int8=golden_int8)
+        self.restorer_audit = DetectionGatedRestorer(self.reg_audit, self.store_audit)
+        self.monitor_audit = AegisHealthMonitor(self.model_audit, self.reg_audit)
+        self.monitor_audit.calibrate(calib_images)
+        self.monitor_audit.attach()
+        self.audits_executed = 0
+
         # Optional additional scrubbing replicas at other intervals (identical fault stream)
         self.scrub_sweep = []
         for hours in scrub_sweep_hours:
@@ -267,7 +286,7 @@ class MissionSimulationHarness:
             for rec in records:
                 # Mirror same bit-flip on all other models for fair comparison
                 mirrors = [self.inj_ranger, self.inj_blink, self.inj_scrub, self.inj_aegis,
-                           self.inj_combo, self.inj_uplink]
+                           self.inj_combo, self.inj_uplink, self.inj_audit]
                 mirrors += [rep["injector"] for rep in self.scrub_sweep]
                 for inj in mirrors:
                     inj.inject_targeted_bit_flip(rec.block_id, rec.param_name, rec.flat_index, rec.bit_position)
@@ -301,6 +320,8 @@ class MissionSimulationHarness:
                 if self.golden_int8:
                     self.monitor_combo.rebaseline_blocks(combo_event.restored_blocks)
 
+            self._step_audit(incoming, self.rad_env.elapsed_minutes - step_minutes, self.rad_env.elapsed_minutes)
+
             self.uplink.report(self._observe(self.monitor_uplink, self.model_uplink, incoming))
             self.uplink.step(self.rad_env.elapsed_minutes - step_minutes, self.rad_env.elapsed_minutes)
 
@@ -315,6 +336,7 @@ class MissionSimulationHarness:
                     ("aegis", self.model_aegis),
                     ("combo", self.model_combo),
                     ("uplink", self.model_uplink),
+                    ("audit", self.model_audit),
                 )
             }
 
@@ -338,6 +360,7 @@ class MissionSimulationHarness:
                 acc_aegis=round(accs["aegis"], 4),
                 acc_ranger_aegis=round(accs["combo"], 4),
                 acc_uplink=round(accs["uplink"], 4),
+                acc_aegis_audit=round(accs["audit"], 4),
                 energy_aegis_uj=round(
                     self.restorer_aegis.cumulative_energy_uj + self._monitor_energy_uj(self.monitor_aegis), 2),
                 energy_scrub_uj=round(self.restorer_scrub.cumulative_energy_uj, 2),
@@ -345,12 +368,15 @@ class MissionSimulationHarness:
                     self.restorer_combo.cumulative_energy_uj + self._monitor_energy_uj(self.monitor_combo), 2),
                 energy_uplink_uj=round(
                     self.uplink.cumulative_energy_uj + self._monitor_energy_uj(self.monitor_uplink), 2),
+                energy_aegis_audit_uj=round(
+                    self.restorer_audit.cumulative_energy_uj + self._monitor_energy_uj(self.monitor_audit), 2),
                 monitor_energy_aegis_uj=round(self._monitor_energy_uj(self.monitor_aegis), 2),
                 monitor_compute_energy_aegis_uj=round(self._hook_compute_energy_uj(self.monitor_aegis), 2),
                 bytes_aegis=self.restorer_aegis.cumulative_bytes_transferred,
                 bytes_scrub=self.restorer_scrub.cumulative_bytes_transferred,
                 bytes_ranger_aegis=self.restorer_combo.cumulative_bytes_transferred,
                 bytes_uplink=self.uplink.cumulative_bytes,
+                bytes_aegis_audit=self.restorer_audit.cumulative_bytes_transferred,
                 scrub_executed=scrub_event is not None,
                 aegis_alarm=not report.is_healthy,
                 aegis_restored_blocks=list(aegis_event.restored_blocks) if aegis_event else [],
@@ -366,14 +392,32 @@ class MissionSimulationHarness:
                 print(
                     f"  step {step_idx + 1:>4}/{total_steps}  day {step_record.elapsed_days:6.2f}  "
                     f"flips {step_record.bit_flips_step:>4} (msb {step_record.exponent_msb_flips_step})  "
-                    f"acc U/R/B/S/A/RA/G = {accs['unmitigated']:.2f}/{accs['ranger']:.2f}/"
+                    f"acc U/R/B/S/A/RA/G/AA = {accs['unmitigated']:.2f}/{accs['ranger']:.2f}/"
                     f"{accs['blink']:.2f}/{accs['scrub']:.2f}/{accs['aegis']:.2f}/"
-                    f"{accs['combo']:.2f}/{accs['uplink']:.2f}  "
+                    f"{accs['combo']:.2f}/{accs['uplink']:.2f}/{accs['audit']:.2f}  "
                     f"restored={step_record.aegis_restored_blocks}",
                     flush=True,
                 )
 
         return self.telemetry_history
+
+    def _step_audit(self, incoming: torch.Tensor, start_minutes: float, end_minutes: float) -> None:
+        """Aegis-v2 behavioral repair, plus a full CRC audit whenever an audit epoch boundary passes."""
+        report = self._observe(self.monitor_audit, self.model_audit, incoming)
+        if not report.is_healthy:
+            event = self.restorer_audit.process_health_report(report, auto_recalibrate=False)
+            if self.golden_int8:
+                self.monitor_audit.rebaseline_blocks(event.restored_blocks)
+        period = self.aegis_audit_hours * 60.0
+        if period > 0 and int(end_minutes // period) > int(start_minutes // period):
+            self.audits_executed += 1
+            corrupt = self.monitor_audit.tier3_checksum.scan_all_blocks()
+            if corrupt:
+                audit_report = HealthReport(is_healthy=False, flagged_blocks=list(corrupt),
+                                            primary_suspect_block=corrupt[0], tier3_corrupted_blocks=list(corrupt))
+                event = self.restorer_audit.process_health_report(audit_report, auto_recalibrate=False)
+                if self.golden_int8:
+                    self.monitor_audit.rebaseline_blocks(event.restored_blocks)
 
     def _observe(self, monitor: AegisHealthMonitor, model: nn.Module, batch: torch.Tensor):
         """Runs the incoming batch through a monitored replica and returns its health report."""
@@ -428,6 +472,7 @@ class MissionSimulationHarness:
                 "aegis_v2": mean_of("acc_aegis"),
                 "ranger_aegis": mean_of("acc_ranger_aegis"),
                 "ground_uplink": mean_of("acc_uplink"),
+                "aegis_audit": mean_of("acc_aegis_audit"),
             },
             "final_accuracy": {
                 "unmitigated": last.acc_unmitigated,
@@ -437,12 +482,14 @@ class MissionSimulationHarness:
                 "aegis_v2": last.acc_aegis,
                 "ranger_aegis": last.acc_ranger_aegis,
                 "ground_uplink": last.acc_uplink,
+                "aegis_audit": last.acc_aegis_audit,
             },
             "energy_consumed_uj": {
                 "periodic_scrubbing": last.energy_scrub_uj,
                 "aegis_v2": last.energy_aegis_uj,
                 "ranger_aegis": last.energy_ranger_aegis_uj,
                 "ground_uplink": last.energy_uplink_uj,
+                "aegis_audit": last.energy_aegis_audit_uj,
                 "aegis_v2_monitor_share": last.monitor_energy_aegis_uj,
                 "aegis_v2_monitor_compute_share": last.monitor_compute_energy_aegis_uj,
                 "energy_savings_percent": round(energy_savings_pct, 2),
@@ -452,10 +499,13 @@ class MissionSimulationHarness:
                 "aegis_v2": last.bytes_aegis,
                 "ranger_aegis": last.bytes_ranger_aegis,
                 "ground_uplink": last.bytes_uplink,
+                "aegis_audit": last.bytes_aegis_audit,
             },
             "ranger_aegis_restorations_count": self.restorer_combo.total_restorations_performed,
             "ground_uplink_contacts_used": len(self.uplink.events),
             "aegis_restorations_count": self.restorer_aegis.total_restorations_performed,
+            "aegis_audit_hours": self.aegis_audit_hours,
+            "aegis_audits_executed": self.audits_executed,
             "aegis_alarm_steps": sum(1 for t in history if t.aegis_alarm),
             "scrubs_executed": self.scrub_controller.total_scrubs_executed,
             "aegis_recalibrate": self.aegis_recalibrate,

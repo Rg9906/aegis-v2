@@ -24,7 +24,7 @@ import numpy as np  # noqa: E402
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from aegis.reporting import STRATEGIES, load_seed_runs, pareto_points  # noqa: E402
+from aegis.reporting import STRATEGIES, load_seed_runs, pareto_points, strategies_present  # noqa: E402
 
 INK = "#0b0b0b"
 INK_2 = "#52514e"
@@ -56,7 +56,7 @@ def fig_accuracy(runs, out_path):
     for t in first:
         if t["in_saa"]:
             ax.axvspan(t["elapsed_days"] - 1 / 24, t["elapsed_days"], color="#efeeea", lw=0, zorder=0)
-    for attr, label, color, _ in STRATEGIES:
+    for attr, label, color, _ in strategies_present(runs):
         mean, lo, hi = seed_mean(runs, attr)
         ax.fill_between(days, lo, hi, color=color, alpha=0.12, lw=0)
         ax.plot(days, mean, color=color, lw=2, label=label)

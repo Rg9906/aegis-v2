@@ -175,3 +175,30 @@ def test_monitor_compute_energy_charges_only_monitored_batches(base_test_env):
     assert sim.telemetry_history[-1].monitor_compute_energy_aegis_uj == pytest.approx(expected_uj, rel=1e-3)
     summary = sim.get_campaign_summary()
     assert summary["energy_consumed_uj"]["aegis_v2_monitor_compute_share"] > 0
+
+
+@pytest.mark.parametrize("audit_hours, expect_repair", [(1.0, True), (0.0, False)])
+def test_crc_audit_repairs_silent_faults(base_test_env, audit_hours, expect_repair):
+    """A mantissa-LSB flip trips no behavioral alarm; only the periodic full CRC audit restores it."""
+    model, val_images, val_labels = base_test_env
+    sim = MissionSimulationHarness(model, val_images, val_labels, random_seed=0,
+                                   monitor_batch_size=4, aegis_audit_hours=audit_hours)
+    golden = sim.reg_audit.get_block_state_dict("layer1_block0")
+    sim.inj_audit.inject_targeted_bit_flip("layer1_block0", "layer1.0.conv1.weight", 0, 0)
+
+    sim._step_audit(val_images[:4], start_minutes=0.0, end_minutes=60.0)
+
+    current = sim.reg_audit.get_block_state_dict("layer1_block0")
+    repaired = all(torch.equal(current[k], golden[k]) for k in golden)
+    assert repaired == expect_repair
+    assert (sim.restorer_audit.cumulative_bytes_transferred > 0) == expect_repair
+    assert sim.audits_executed == (1 if expect_repair else 0)
+
+
+def test_summary_reports_audit_strategy(base_test_env):
+    model, val_images, val_labels = base_test_env
+    sim = MissionSimulationHarness(model, val_images, val_labels, random_seed=0, monitor_batch_size=4)
+    sim.run_simulation(total_days=2 / 24, step_minutes=60.0)
+    summary = sim.get_campaign_summary()
+    for section in ("mean_accuracy", "final_accuracy", "bytes_transferred", "energy_consumed_uj"):
+        assert "aegis_audit" in summary[section]

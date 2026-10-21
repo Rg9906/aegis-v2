@@ -20,6 +20,7 @@ STRATEGIES: Tuple[Tuple[str, str, str, str], ...] = (
     ("acc_unmitigated", "Unmitigated", "#e87ba4", "#d55181"),
     ("acc_uplink", "Ground uplink reload", "#008300", "#008300"),
     ("acc_ranger_aegis", "Ranger + Aegis-v2", "#6250d6", "#9085e9"),
+    ("acc_aegis_audit", "Aegis-v2 + CRC audit", "#e34948", "#e66767"),
 )
 
 SUMMARY_KEYS: Dict[str, str] = {
@@ -30,7 +31,16 @@ SUMMARY_KEYS: Dict[str, str] = {
     "acc_unmitigated": "unmitigated",
     "acc_uplink": "ground_uplink",
     "acc_ranger_aegis": "ranger_aegis",
+    "acc_aegis_audit": "aegis_audit",
 }
+
+
+def strategies_present(runs: Dict[int, dict]) -> Tuple[Tuple[str, str, str, str], ...]:
+    """STRATEGIES recorded in these runs (older campaigns predate some strategies)."""
+    if not runs:
+        return STRATEGIES
+    first = next(iter(runs.values()))["telemetry"][0]
+    return tuple(s for s in STRATEGIES if s[0] in first)
 
 
 def list_campaigns(results_dir: str = "results") -> List[str]:
@@ -79,6 +89,7 @@ def pareto_points(runs: Dict[int, dict]) -> List[Dict[str, object]]:
         },
     ]
     for label, key, family in (("Ranger + Aegis-v2", "ranger_aegis", "aegis"),
+                               ("Aegis-v2 + CRC audit", "aegis_audit", "aegis"),
                                ("Ground uplink reload", "ground_uplink", "uplink")):
         if key in summaries[0]["mean_accuracy"]:
             points.append({
