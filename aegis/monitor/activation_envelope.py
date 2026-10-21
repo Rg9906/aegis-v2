@@ -25,6 +25,8 @@ class ActivationEnvelopeMonitor:
         self._bounds: Dict[str, Tuple[float, float]] = {}  # layer_name -> (min_bound, max_bound)
         self._hooks: List[torch.utils.hooks.RemovableHandle] = []
         self._latest_violations: Dict[str, Dict[str, object]] = {}
+        # Elementwise operations performed by runtime hooks (isnan, isinf, max, min per element)
+        self.ops_performed: int = 0
 
     @property
     def bounds(self) -> Dict[str, Tuple[float, float]]:
@@ -96,6 +98,7 @@ class ActivationEnvelopeMonitor:
         def make_monitor_hook(name: str):
             def hook(module: nn.Module, inp: Tuple[torch.Tensor, ...], out: torch.Tensor):
                 with torch.no_grad():
+                    self.ops_performed += 4 * out.numel()
                     # Check for NaNs and Infs
                     has_nan = bool(torch.isnan(out).any().item())
                     has_inf = bool(torch.isinf(out).any().item())

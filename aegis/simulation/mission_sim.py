@@ -53,6 +53,7 @@ class TimeStepTelemetry:
     energy_ranger_aegis_uj: float
     energy_uplink_uj: float
     monitor_energy_aegis_uj: float
+    monitor_compute_energy_aegis_uj: float
     bytes_aegis: int
     bytes_scrub: int
     bytes_ranger_aegis: int
@@ -81,7 +82,8 @@ class MissionSimulationHarness:
       5. All replicas are scored on the labeled evaluation set.
 
     Aegis-family energy = golden-store reads + DRAM writes + DRAM reads for T3 CRC scans
-    (+ recalibration inference if enabled). T1/T2 hook compute is not modeled.
+    + T1/T2 hook compute on each monitored batch (+ recalibration inference if enabled).
+    Ranger/BLINK clamp and re-centering compute is not charged (they move no bytes).
     """
 
     def __init__(
@@ -218,6 +220,10 @@ class MissionSimulationHarness:
                 "controller": PeriodicScrubbingController(restorer, scrub_interval_hours=hours),
             })
 
+        # T1/T2 hook ops on monitored incoming batches only (evaluation passes through the same
+        # hooks are measurement, not mission work, so they are excluded). Keyed by id(monitor).
+        self._monitor_ops: Dict[int, int] = {}
+
         self.telemetry_history: List[TimeStepTelemetry] = []
         self.clean_accuracy: float = self._evaluate_model(self.model_unmitigated)
 
@@ -340,6 +346,7 @@ class MissionSimulationHarness:
                 energy_uplink_uj=round(
                     self.uplink.cumulative_energy_uj + self._monitor_energy_uj(self.monitor_uplink), 2),
                 monitor_energy_aegis_uj=round(self._monitor_energy_uj(self.monitor_aegis), 2),
+                monitor_compute_energy_aegis_uj=round(self._hook_compute_energy_uj(self.monitor_aegis), 2),
                 bytes_aegis=self.restorer_aegis.cumulative_bytes_transferred,
                 bytes_scrub=self.restorer_scrub.cumulative_bytes_transferred,
                 bytes_ranger_aegis=self.restorer_combo.cumulative_bytes_transferred,
@@ -371,14 +378,23 @@ class MissionSimulationHarness:
     def _observe(self, monitor: AegisHealthMonitor, model: nn.Module, batch: torch.Tensor):
         """Runs the incoming batch through a monitored replica and returns its health report."""
         monitor.clear()
+        ops_before = monitor.tier1_envelope.ops_performed + monitor.tier2_bn_drift.ops_performed
         with torch.no_grad():
             model(batch)
+        ops_after = monitor.tier1_envelope.ops_performed + monitor.tier2_bn_drift.ops_performed
+        self._monitor_ops[id(monitor)] = self._monitor_ops.get(id(monitor), 0) + ops_after - ops_before
         return monitor.diagnose_current_state(run_tier3_scan=False)
 
     def _monitor_energy_uj(self, monitor: AegisHealthMonitor) -> float:
-        """DRAM read energy of all Tier 3 CRC verifications so far."""
+        """All monitoring energy so far: T3 CRC DRAM reads + T1/T2 hook compute."""
         pj_per_bit = self.store_aegis.budget_config.dram_read_energy_pj_per_bit
-        return monitor.tier3_checksum.bytes_scanned * 8 * pj_per_bit / 1e6
+        crc_uj = monitor.tier3_checksum.bytes_scanned * 8 * pj_per_bit / 1e6
+        return crc_uj + self._hook_compute_energy_uj(monitor)
+
+    def _hook_compute_energy_uj(self, monitor: AegisHealthMonitor) -> float:
+        """T1/T2 elementwise hook work on monitored batches so far."""
+        ops = self._monitor_ops.get(id(monitor), 0)
+        return ops * self.store_aegis.budget_config.monitor_energy_pj_per_op / 1e6
 
     def get_campaign_summary(self) -> Dict[str, object]:
         """Calculates mean (time-averaged) accuracy, total energy, and reliability metrics."""
@@ -428,6 +444,7 @@ class MissionSimulationHarness:
                 "ranger_aegis": last.energy_ranger_aegis_uj,
                 "ground_uplink": last.energy_uplink_uj,
                 "aegis_v2_monitor_share": last.monitor_energy_aegis_uj,
+                "aegis_v2_monitor_compute_share": last.monitor_compute_energy_aegis_uj,
                 "energy_savings_percent": round(energy_savings_pct, 2),
             },
             "bytes_transferred": {

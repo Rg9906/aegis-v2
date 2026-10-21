@@ -111,6 +111,11 @@ class SatellitePayloadBudgetConfig:
     # Inference energy proxy (Jetson Xavier NX running ResNet-18 at 15W TDP)
     inference_energy_mj_per_image: float = 12.5
 
+    # T1/T2 hook compute: elementwise passes (compare / reduce) over monitored activations.
+    # Derived from the inference proxy: 12.5 mJ / 1.82 G MACs (ResNet-18 at 224 px) = 6.9 pJ/op.
+    # Assumption: an elementwise pass costs as much as a MAC (memory-bound, likely pessimistic).
+    monitor_energy_pj_per_op: float = 6.9
+
 
 # Global default instances
 DEFAULT_RAD_CONFIG = RadiationEnvironmentConfig()

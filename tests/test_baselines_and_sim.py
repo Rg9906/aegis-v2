@@ -147,3 +147,31 @@ def test_scrub_sweep_and_pareto_points(base_test_env):
     points = pareto_points({1: {"summary": summary, "telemetry": [asdict(t) for t in telemetry]}})
     strategies = {p["strategy"] for p in points}
     assert "Periodic scrubbing (1 h)" in strategies and "Aegis-v2 selective restore" in strategies
+
+
+def test_monitor_compute_energy_charges_only_monitored_batches(base_test_env):
+    """T1/T2 hook work is charged per monitored batch; evaluation passes are not mission work."""
+    model, val_images, val_labels = base_test_env
+    sim = MissionSimulationHarness(model, val_images, val_labels, random_seed=3, monitor_batch_size=4)
+    sim.run_simulation(total_days=2 / 24, step_minutes=60.0)
+
+    # Expected ops: T1 = 4 passes over every Conv/Linear output, T2 = 3 over every BN input
+    counted = {"ops": 0}
+
+    def count(module, inp, out):
+        if isinstance(module, torch.nn.BatchNorm2d):
+            counted["ops"] += 3 * inp[0].numel()
+        else:
+            counted["ops"] += 4 * out.numel()
+
+    probe = models.resnet18(weights=None, num_classes=EUROSAT_NUM_CLASSES).eval()
+    for m in probe.modules():
+        if isinstance(m, (torch.nn.Conv2d, torch.nn.Linear, torch.nn.BatchNorm2d)):
+            m.register_forward_hook(count)
+    with torch.no_grad():
+        probe(val_images[:4])
+    expected_uj = 2 * counted["ops"] * sim.store_aegis.budget_config.monitor_energy_pj_per_op / 1e6
+
+    assert sim.telemetry_history[-1].monitor_compute_energy_aegis_uj == pytest.approx(expected_uj, rel=1e-3)
+    summary = sim.get_campaign_summary()
+    assert summary["energy_consumed_uj"]["aegis_v2_monitor_compute_share"] > 0

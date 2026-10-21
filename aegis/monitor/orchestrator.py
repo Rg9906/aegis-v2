@@ -94,15 +94,9 @@ class AegisHealthMonitor:
 
     def _map_layer_name_to_block_id(self, layer_name: str) -> str:
         """Maps PyTorch module name (e.g. 'backbone.layer2.0.conv1') to LayerRegistry block_id."""
-        clean_name = layer_name.replace("backbone.", "")
-        parts = clean_name.split(".")
-        if parts[0] in ("conv1", "bn1"):
-            return "stem"
-        if parts[0] == "fc":
-            return "classifier"
-        if parts[0].startswith("layer") and len(parts) >= 2:
-            return f"{parts[0]}_block{parts[1]}"
-        return "stem"
+        # Same grouping as the registry's parameter keys, so alarms map to restorable blocks
+        block_id = LayerRegistry.classify_key(layer_name.replace("backbone.", ""))
+        return block_id if block_id in self.registry.block_ids else self.registry.block_ids[0]
 
     def diagnose_current_state(self, run_tier3_scan: bool = False) -> HealthReport:
         """
@@ -125,6 +119,15 @@ class AegisHealthMonitor:
                 block_id = self._map_layer_name_to_block_id(layer_name)
                 candidate_blocks.add(block_id)
 
+        # T1 hooks conv outputs and T2 hooks BN inputs, so a fault in a block's BN parameters or
+        # output path (e.g. a sign flip on running_var -> NaN) first shows in the NEXT block.
+        # Also check the block just upstream of the earliest flagged one.
+        forward_order = {bid: i for i, bid in enumerate(self.registry.block_ids)}
+        if candidate_blocks:
+            earliest = min(forward_order.get(b, 0) for b in candidate_blocks)
+            if earliest > 0:
+                candidate_blocks.add(self.registry.block_ids[earliest - 1])
+
         # 3. Tier 3 (CRC Checksums): Deterministic confirmation
         # Fast filter-and-confirm: only confirm blocks that fail CRC-32 checksum
         t3_corrupted = []
@@ -142,7 +145,6 @@ class AegisHealthMonitor:
         is_healthy = (len(confirmed_blocks) == 0)
         # Order by forward-pass position (registry order: stem -> layer1..4 -> classifier),
         # so the primary suspect is the most upstream confirmed block, not the alphabetical first
-        forward_order = {bid: i for i, bid in enumerate(self.registry.block_ids)}
         sorted_flagged = sorted(confirmed_blocks, key=lambda b: forward_order.get(b, len(forward_order)))
         primary_suspect = sorted_flagged[0] if sorted_flagged else None
 

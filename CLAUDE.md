@@ -21,13 +21,19 @@ Design rationale: `AEGIS_RESEARCH_STUDY_AND_PROTOTYPE_BLUEPRINT.md`; prior-art m
 - Campaign: `python experiments/run_campaign.py --days 3 --seeds 0 1 2 --eval-per-class 15 --scrub-sweep-hours 1 3 6 24 --name main`
   (~35 s/step on CPU with 9 replicas; writes `results/<name>/seed_*.json`, `campaign.json`)
 - Figures: `python experiments/make_figures.py --name main` -> `results/<name>/figures/`
+- Report: `python experiments/write_report.py --name main` -> `results/<name>/report.md`
+  (seed 95% t-intervals, paired Aegis-minus-baseline deltas, scrub-Pareto verdict)
+- Second architecture: `python experiments/train_mobilenet.py --epochs 3 --device cuda` (GPU; writes
+  `checkpoints/`, gitignored), then `run_campaign.py ... --arch mobilenet_v2`
+- GPU runs: `notebooks/aegis_colab.ipynb` (repo `Rg9906/aegis-v2`, token in Colab secret `GH_TOKEN`)
 - Dashboard: `streamlit run dashboard/app.py`
 
 ## Layout
 `aegis/fault_engine` (IEEE-754 flips, LEO/SAA flux model, injector) · `aegis/monitor` (T1 activation
 envelope, T2 BN drift, T3 CRC-32, orchestrator) · `aegis/repair` (zstd golden store, restorer, BN
 recalibration) · `aegis/baselines` · `aegis/simulation` (mission harness, confusion analysis) ·
-`aegis/data` (real EuroSAT splits) · `aegis/reporting.py` (shared loaders/colors for figures + dashboard).
+`aegis/data` (real EuroSAT splits) · `aegis/models/factory.py` (`--arch` backbones) ·
+`aegis/reporting.py` (shared loaders/colors for figures + dashboard).
 
 ## Non-obvious invariants (each was a real bug)
 - **Model input**: checkpoint expects 224 px bicubic-upsampled chips with EuroSAT mean/std, and
@@ -43,6 +49,13 @@ recalibration) · `aegis/baselines` · `aegis/simulation` (mission harness, conf
   needs no BN recalibration (recalibration is off by default and is charged inference energy).
 - Faults are placed uniformly over stored bits (block and tensor chosen proportional to size);
   default `fault_field="any"`. Forcing `"exponent"` inflates severity: disclose it if used.
+- Alarm-to-block mapping uses `LayerRegistry.classify_key` for both parameter keys and module
+  names (ResNet `layerX.Y`, MobileNetV2 `features.N`). A separate mapping with a "stem" fallback
+  once sent every MobileNetV2 alarm to the wrong block.
+- MobileNetV2 is trained only on chips outside the campaign splits; its checkpoint sidecar lists
+  the held-out chips and `run_campaign.py` refuses a split that is not inside them.
+- Monitoring energy charges T1/T2 hook compute only on the monitored incoming batch (evaluation
+  passes go through the same hooks but are measurement, not mission work).
 - Orbit: default `--orbit tle` = real Sentinel-2A track (SGP4 on `orbits/sentinel2a.tle`, CelesTrak)
   with the SAA defined physically as low |B| from IGRF (rate ramps 20,000 -> 18,000 nT). This
   yields ~80 SAA-core min/day and ~82% of upsets in the SAA.
@@ -63,8 +76,13 @@ recalibration) · `aegis/baselines` · `aegis/simulation` (mission harness, conf
   T3 CRC scan energy (assumed 20 pJ/bit DRAM read), optional INT8 golden store (`--golden-int8`;
   41.6 -> 9.2 MB, -0.7 pts on 1,000 chips; restored blocks are re-baselined individually),
   transient activation-fault experiment (`experiments/transient_faults.py`: 0% spurious restores).
-- Not done: second architecture (no EuroSAT MobileNet checkpoint; needs fine-tuning); AP8/AE9
+- Not done: AP8/AE9
   trapped-flux model + device cross-section (IGRF |B| ramp is the proxy).
-- Known limitation: T1/T2 hook compute is not in the energy model (CRC scans are);
-  the checkpoint's training split is unknown, so clean accuracy may be optimistic (relative
-  degradation is unaffected).
+- Added 2026-10-21 (later): T1/T2 hook compute energy (4 passes per Conv/Linear output + 3 per BN
+  input at an assumed 6.9 pJ/op = 12.5 mJ / 1.82 G MACs): ~1.9 mJ per 16-image ResNet-18 batch,
+  ~138 mJ over 3 days, i.e. ~10 full-reload equivalents of memory energy, so it matters for the
+  energy comparison. Report generator adds it analytically to campaigns run before it existed.
+  MobileNetV2 path implemented and smoke-tested on CPU; real fine-tune + campaign pending (Colab).
+- Known limitations: Ranger/BLINK per-inference compute is not charged; the ResNet-18 checkpoint's
+  training split is unknown, so its clean accuracy may be optimistic (relative degradation is
+  unaffected; the MobileNetV2 path has a verified held-out split).

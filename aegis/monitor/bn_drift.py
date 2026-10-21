@@ -22,6 +22,8 @@ class BNDriftMonitor:
         self._hooks: List[torch.utils.hooks.RemovableHandle] = []
         self._latest_drifts: Dict[str, Dict[str, float]] = {}
         self._calibrated_tolerances: Dict[str, float] = {}
+        # Elementwise operations performed by runtime hooks (mean + two-pass variance)
+        self.ops_performed: int = 0
 
     @property
     def latest_drifts(self) -> Dict[str, Dict[str, float]]:
@@ -77,6 +79,7 @@ class BNDriftMonitor:
             def hook(module: nn.BatchNorm2d, inp: Tuple[torch.Tensor, ...], out: torch.Tensor):
                 with torch.no_grad():
                     x = inp[0]  # [B, C, H, W]
+                    self.ops_performed += 3 * x.numel()
                     drift_score = self._compute_layer_drift(module, x)
                     threshold = self._calibrated_tolerances.get(name, self.drift_threshold)
                     is_anomalous = drift_score > threshold

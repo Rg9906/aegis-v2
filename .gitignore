@@ -45,3 +45,6 @@ data/cache/
 /data/
 results/*.log
 results/smoke/
+
+# Locally fine-tuned weights (MobileNetV2)
+/checkpoints/

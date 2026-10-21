@@ -136,3 +136,39 @@ def test_orchestrator_diagnose(test_setup):
 
     orchestrator.detach()
     injector.rollback_all_faults()
+
+
+def test_bn_running_var_sign_flip_restores_its_own_block():
+    """
+    Regression (campaign seed 1, step 17): a sign flip on layer3.0.bn2.running_var makes that BN
+    emit NaN. T1/T2 first see it in layer3_block1, so the culprit block must be found by also
+    CRC-checking the block upstream of the earliest alarm.
+    """
+    import torchvision.models as models
+
+    from aegis.fault_engine.injector import ModelFaultInjector
+    from aegis.models.layer_registry import LayerRegistry
+    from aegis.monitor.orchestrator import AegisHealthMonitor
+    from aegis.repair.golden_store import CompressedGoldenStore
+    from aegis.repair.selective_restore import DetectionGatedRestorer
+
+    torch.manual_seed(0)
+    model = models.resnet18(weights=None, num_classes=10).eval()
+    registry = LayerRegistry(model)
+    calib = torch.randn(32, 3, 64, 64)  # plumbing only
+    monitor = AegisHealthMonitor(model, registry)
+    monitor.calibrate(calib)
+    monitor.attach()
+    store = CompressedGoldenStore(registry)
+
+    ModelFaultInjector(model, registry).inject_targeted_bit_flip(
+        "layer3_block0", "layer3.0.bn2.running_var", 0, 31)
+    monitor.clear()
+    with torch.no_grad():
+        model(calib[:16])
+    report = monitor.diagnose_current_state()
+    assert "layer3_block0" in report.flagged_blocks
+
+    DetectionGatedRestorer(registry, store).process_health_report(report, auto_recalibrate=False)
+    with torch.no_grad():
+        assert torch.isfinite(model(calib[:16])).all()

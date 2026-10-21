@@ -2,7 +2,7 @@
 Layer Registry and Introspection Substructure for Selective Model Management.
 
 Provides structured metadata, parameter counting, and targeted state-dict isolation
-for each logical layer block in deep convolutional networks (specifically ResNet-18).
+for each logical layer block in deep convolutional networks (ResNet-18 and MobileNetV2).
 """
 
 from dataclasses import dataclass
@@ -50,7 +50,7 @@ class LayerRegistry:
 
         for key in raw_state_dict.keys():
             # Classify key into a logical block
-            block_id = self._classify_key(key)
+            block_id = self.classify_key(key)
             if block_id not in block_keys:
                 block_keys[block_id] = []
             block_keys[block_id].append(key)
@@ -74,13 +74,19 @@ class LayerRegistry:
             )
 
     @staticmethod
-    def _classify_key(key: str) -> str:
-        """Groups parameter keys into logical satellite payload restoration units."""
+    def classify_key(key: str) -> str:
+        """
+        Groups parameter keys (or module names) into logical restoration units.
+        ResNet: conv1/bn1 -> stem, layerX.Y -> layerX_blockY, fc -> classifier.
+        MobileNetV2: features.N -> features_blockN (N=0 is the stem conv), classifier -> classifier.
+        """
         parts = key.split(".")
         if parts[0] in ("conv1", "bn1"):
             return "stem"
-        if parts[0] == "fc":
+        if parts[0] in ("fc", "classifier"):
             return "classifier"
+        if parts[0] == "features" and len(parts) >= 2:
+            return f"features_block{parts[1]}"
         if parts[0].startswith("layer"):
             # e.g., layer1.0 -> layer1_block0, layer2.1 -> layer2_block1
             if len(parts) >= 2:

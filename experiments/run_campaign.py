@@ -22,7 +22,7 @@ import torch
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from aegis.data.eurosat import load_eurosat_splits  # noqa: E402
-from aegis.models.eurosat_classifier import EuroSATResNet18  # noqa: E402
+from aegis.models.factory import ARCHITECTURES, assert_held_out, load_backbone  # noqa: E402
 from aegis.simulation.mission_sim import MissionSimulationHarness  # noqa: E402
 
 STRATEGIES = ("unmitigated", "ranger_clipping", "blink_recentering", "periodic_scrubbing", "aegis_v2",
@@ -47,6 +47,8 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--golden-int8", action="store_true",
                    help="Aegis golden copy stored as per-channel INT8 (lossy restores)")
     p.add_argument("--recalibrate", action="store_true", help="Enable post-restore BN recalibration")
+    p.add_argument("--arch", choices=ARCHITECTURES, default="resnet18")
+    p.add_argument("--checkpoint", default=None, help="Weights file (default per architecture)")
     p.add_argument("--device", default="auto", help="auto | cpu | cuda")
     p.add_argument("--name", default="main")
     p.add_argument("--out-dir", default="results")
@@ -61,9 +63,13 @@ def main() -> None:
 
     device = torch.device("cuda" if args.device == "auto" and torch.cuda.is_available()
                           else ("cpu" if args.device == "auto" else args.device))
-    classifier = EuroSATResNet18(pretrained=True).to(device)
+    backbone = load_backbone(args.arch, args.checkpoint).to(device)
     # Data split is fixed across seeds so seeds vary only the radiation process
     splits = load_eurosat_splits(calib_per_class=args.calib_per_class, eval_per_class=args.eval_per_class, seed=0)
+    if args.arch == "mobilenet_v2":
+        from aegis.models.factory import DEFAULT_MOBILENET_CHECKPOINT
+
+        assert_held_out(args.checkpoint or DEFAULT_MOBILENET_CHECKPOINT, splits.calib_paths + splits.eval_paths)
     splits.calib_images = splits.calib_images.to(device)
     splits.eval_images = splits.eval_images.to(device)
     splits.eval_labels = splits.eval_labels.to(device)
@@ -75,7 +81,7 @@ def main() -> None:
         torch.manual_seed(seed)
         t0 = time.time()
         sim = MissionSimulationHarness(
-            base_model=classifier.backbone,
+            base_model=backbone,
             val_images=splits.eval_images,
             val_labels=splits.eval_labels,
             calib_images=splits.calib_images,
@@ -92,6 +98,7 @@ def main() -> None:
         sim.run_simulation(total_days=args.days, step_minutes=args.step_minutes, progress=True)
         summary = sim.get_campaign_summary()
         summary["seed"] = seed
+        summary["arch"] = args.arch
         summary["wall_seconds"] = round(time.time() - t0, 1)
         seed_summaries.append(summary)
         with open(os.path.join(out_dir, f"seed_{seed}.json"), "w", encoding="utf-8") as f:
