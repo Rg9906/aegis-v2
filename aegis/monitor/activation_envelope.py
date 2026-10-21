@@ -17,8 +17,11 @@ class ActivationEnvelopeMonitor:
     Flags any layer whose activations exceed profiled healthy upper/lower limits or produce NaNs/Infs.
     """
 
-    def __init__(self, multiplier: float = 6.0):
-        self.multiplier = multiplier
+    def __init__(self, margin: float = 0.5):
+        # Bounds = observed clean [min, max] widened by `margin` x (max - min) on each side.
+        # (A pooled mean +/- k*sigma envelope is unusable on real imagery: conv activations are
+        # heavy-tailed, and the clean calibration batch itself exceeds 6 sigma in ~every layer.)
+        self.margin = margin
         self._bounds: Dict[str, Tuple[float, float]] = {}  # layer_name -> (min_bound, max_bound)
         self._hooks: List[torch.utils.hooks.RemovableHandle] = []
         self._latest_violations: Dict[str, Dict[str, object]] = {}
@@ -38,19 +41,21 @@ class ActivationEnvelopeMonitor:
         tracked_layer_names: Optional[List[str]] = None,
     ) -> None:
         """
-        Profiles normal activation distributions using a small set of clean images.
-        Establishes upper/lower envelopes: [mu - k*sigma, mu + k*sigma].
+        Profiles normal activation ranges using a small set of clean images (Ranger-style).
+        Establishes envelopes: [min - m*(max-min), max + m*(max-min)].
         """
         model.eval()
-        stats: Dict[str, List[torch.Tensor]] = {}
+        stats: Dict[str, List[float]] = {}  # layer_name -> [running_min, running_max]
         hooks: List[torch.utils.hooks.RemovableHandle] = []
 
         def make_profile_hook(name: str):
             def hook(module: nn.Module, inp: Tuple[torch.Tensor, ...], out: torch.Tensor):
                 with torch.no_grad():
-                    # Compute mean and std of activations
-                    flat_out = out.detach().float().view(-1)
-                    stats.setdefault(name, []).append(flat_out)
+                    lo, hi = float(out.min().item()), float(out.max().item())
+                    if name in stats:
+                        stats[name] = [min(stats[name][0], lo), max(stats[name][1], hi)]
+                    else:
+                        stats[name] = [lo, hi]
             return hook
 
         # Register profiling hooks on Conv2d and Linear layers
@@ -63,7 +68,9 @@ class ActivationEnvelopeMonitor:
         # Run forward pass on calibration imagery
         with torch.no_grad():
             if isinstance(calibration_loader_or_batch, torch.Tensor):
-                model(calibration_loader_or_batch)
+                # Stream in chunks: only running min/max are kept, so calibration size is unbounded
+                for chunk in calibration_loader_or_batch.split(32):
+                    model(chunk)
             else:
                 for batch in calibration_loader_or_batch:
                     imgs = batch[0] if isinstance(batch, (list, tuple)) else batch
@@ -75,14 +82,9 @@ class ActivationEnvelopeMonitor:
             h.remove()
 
         # Compute empirical bounds
-        for name, act_tensors in stats.items():
-            all_acts = torch.cat(act_tensors)
-            mean = all_acts.mean().item()
-            std = all_acts.std().item() + 1e-6
-            lower = mean - (self.multiplier * std)
-            upper = mean + (self.multiplier * std)
-            # Ensure safe bounds
-            self._bounds[name] = (min(lower, -10.0), max(upper, 10.0))
+        for name, (lo, hi) in stats.items():
+            span = max(hi - lo, 1e-6)
+            self._bounds[name] = (lo - self.margin * span, hi + self.margin * span)
 
     def attach(self, model: nn.Module, tracked_layer_names: Optional[List[str]] = None) -> None:
         """

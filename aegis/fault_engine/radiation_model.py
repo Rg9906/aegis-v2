@@ -23,6 +23,7 @@ class OrbitalState:
     expected_seu_rate_per_bit_day: float
     total_sbus_generated: int
     total_mbus_generated: int
+    saa_minutes_in_step: float = 0.0
 
 
 class LEORadiationEnvironment:
@@ -62,6 +63,22 @@ class LEORadiationEnvironment:
         pass_offset = minute_of_day % saa_interval
         return pass_offset < self.config.saa_pass_duration_minutes
 
+    def saa_minutes_in_interval(self, start_minutes: float, end_minutes: float) -> float:
+        """
+        Exact overlap (in minutes) between [start, end) and the periodic SAA pass windows.
+        Windows start at k * (1440 / passes_per_day) and last saa_pass_duration_minutes.
+        """
+        interval = 1440.0 / self.config.saa_passes_per_day
+        duration = self.config.saa_pass_duration_minutes
+        overlap = 0.0
+        k = int(start_minutes // interval)
+        while k * interval < end_minutes:
+            win_start = k * interval
+            win_end = win_start + duration
+            overlap += max(0.0, min(end_minutes, win_end) - max(start_minutes, win_start))
+            k += 1
+        return overlap
+
     def step(self, delta_minutes: float, total_model_bits: int) -> OrbitalState:
         """
         Advances orbital simulation time by delta_minutes and generates upset counts.
@@ -73,17 +90,21 @@ class LEORadiationEnvironment:
         Returns:
             OrbitalState containing upset counts for this time interval.
         """
+        start_minutes = self.elapsed_minutes
         self.elapsed_minutes += delta_minutes
-        in_saa = self.is_inside_saa(self.elapsed_minutes)
 
-        if in_saa:
-            # High flux inside SAA core
-            rate_per_bit_day = self.config.saa_peak_rate_per_bit_day
-            flux_mult = rate_per_bit_day / self.config.background_rate_per_bit_day
-        else:
-            # Baseline galactic cosmic ray background outside SAA
-            rate_per_bit_day = self.config.background_rate_per_bit_day
-            flux_mult = 1.0
+        # Integrate flux over the step: SAA-core rate for the minutes spent inside SAA
+        # windows, galactic background rate for the remainder. (Classifying the whole step
+        # by its endpoint would put every 240-minute step entirely inside the SAA.)
+        saa_minutes = self.saa_minutes_in_interval(start_minutes, self.elapsed_minutes)
+        background_minutes = delta_minutes - saa_minutes
+        in_saa = saa_minutes > 0.0
+
+        rate_per_bit_day = (
+            self.config.saa_peak_rate_per_bit_day * saa_minutes
+            + self.config.background_rate_per_bit_day * background_minutes
+        ) / delta_minutes if delta_minutes > 0 else 0.0
+        flux_mult = rate_per_bit_day / self.config.background_rate_per_bit_day
 
         # Calculate expected number of events over delta_minutes
         delta_days = delta_minutes / 1440.0
@@ -109,6 +130,7 @@ class LEORadiationEnvironment:
             expected_seu_rate_per_bit_day=rate_per_bit_day,
             total_sbus_generated=num_sbus,
             total_mbus_generated=num_mbus,
+            saa_minutes_in_step=saa_minutes,
         )
 
     def reset(self) -> None:

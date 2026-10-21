@@ -45,15 +45,22 @@ class EuroSATResNet18(nn.Module):
         Loads pre-trained EuroSAT checkpoint. Downloads from Hugging Face Hub if not local.
         """
         if weights_path is None or not os.path.exists(weights_path):
-            # Download from Hugging Face Hub (cached automatically in ~/.cache/huggingface)
-            weights_path = hf_hub_download(
-                repo_id=DEFAULT_EUROSAT_MODEL_REPO,
-                filename=DEFAULT_EUROSAT_WEIGHTS_FILE,
-            )
+            # Prefer the local Hugging Face cache; only hit the network if it is missing
+            try:
+                weights_path = hf_hub_download(
+                    repo_id=DEFAULT_EUROSAT_MODEL_REPO,
+                    filename=DEFAULT_EUROSAT_WEIGHTS_FILE,
+                    local_files_only=True,
+                )
+            except Exception:
+                weights_path = hf_hub_download(
+                    repo_id=DEFAULT_EUROSAT_MODEL_REPO,
+                    filename=DEFAULT_EUROSAT_WEIGHTS_FILE,
+                )
 
         state_dict = load_file(weights_path)
-        # Adapt keys if necessary and load into backbone
-        incompatible = self.backbone.load_state_dict(state_dict, strict=False)
+        # Strict load: a silent key mismatch would leave the backbone randomly initialized
+        self.backbone.load_state_dict(state_dict, strict=True)
         self.eval()
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:

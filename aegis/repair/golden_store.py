@@ -27,9 +27,17 @@ class CompressedGoldenStore:
         registry: LayerRegistry,
         compression_level: int = 3,
         budget_config: SatellitePayloadBudgetConfig = DEFAULT_BUDGET_CONFIG,
+        quantize_int8: bool = False,
     ):
+        """
+        quantize_int8: store conv/linear weights (dim >= 2) as per-output-channel symmetric INT8
+        plus fp32 scales; 1-D tensors (BN, biases) stay fp32. Restores are then LOSSY: the
+        restored block differs from the original, so callers must re-baseline that block's
+        Tier 3 checksum (AegisHealthMonitor.rebaseline_blocks) and may want BN recalibration.
+        """
         self.registry = registry
         self.compression_level = compression_level
+        self.quantize_int8 = quantize_int8
         self.budget_config = budget_config
         self.cctx = zstd.ZstdCompressor(level=compression_level)
         self.dctx = zstd.ZstdDecompressor()
@@ -49,6 +57,8 @@ class CompressedGoldenStore:
 
         for block_id in self.registry.block_ids:
             block_sd = self.registry.get_block_state_dict(block_id)
+            if self.quantize_int8:
+                block_sd = self._quantize(block_sd)
             # Serialize tensors using safetensors binary format
             raw_safetensors_bytes = save(block_sd)
             self._uncompressed_sizes[block_id] = len(raw_safetensors_bytes)
@@ -86,10 +96,12 @@ class CompressedGoldenStore:
 
         # Deserialize safetensors into PyTorch tensors
         block_sd = load(decompressed_bytes)
+        if self.quantize_int8:
+            block_sd = self._dequantize(block_sd)
 
-        # Accounting: Bytes transferred from SPI Flash + Written to DRAM
+        # Accounting: Bytes transferred from SPI Flash + Written to DRAM (as restored fp32 tensors)
         compressed_len = len(compressed_data)
-        uncompressed_len = len(decompressed_bytes)
+        uncompressed_len = sum(t.numel() * t.element_size() for t in block_sd.values())
         self._cumulative_bytes_read += compressed_len
 
         # Energy calculation:
@@ -100,6 +112,35 @@ class CompressedGoldenStore:
         self._cumulative_energy_uj += total_energy_uj
 
         return block_sd
+
+    @staticmethod
+    def _quantize(block_sd: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
+        out: Dict[str, torch.Tensor] = {}
+        for key, t in block_sd.items():
+            if t.dtype == torch.float32 and t.dim() >= 2:
+                flat = t.reshape(t.size(0), -1)
+                scale = flat.abs().amax(dim=1).clamp_min(1e-12) / 127.0
+                q = torch.round(flat / scale[:, None]).clamp(-127, 127).to(torch.int8)
+                out[key + ".__q"] = q.reshape(t.shape).contiguous()
+                out[key + ".__scale"] = scale.contiguous()
+            else:
+                out[key] = t
+        return out
+
+    @staticmethod
+    def _dequantize(stored: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
+        out: Dict[str, torch.Tensor] = {}
+        for key, t in stored.items():
+            if key.endswith(".__scale"):
+                continue
+            if key.endswith(".__q"):
+                base = key[: -len(".__q")]
+                scale = stored[base + ".__scale"]
+                shape = [-1] + [1] * (t.dim() - 1)
+                out[base] = t.to(torch.float32) * scale.view(shape)
+            else:
+                out[key] = t
+        return out
 
     def get_block_storage_info(self, block_id: str) -> Dict[str, float]:
         """Returns size and compression statistics for a specific block."""

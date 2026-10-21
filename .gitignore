@@ -40,3 +40,8 @@ data/cache/
 .idea/
 .vscode/
 *.swp
+
+# Datasets and campaign logs
+/data/
+results/*.log
+results/smoke/

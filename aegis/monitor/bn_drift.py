@@ -32,9 +32,12 @@ class BNDriftMonitor:
         model: nn.Module,
         calibration_batch: torch.Tensor,
         safety_margin: float = 2.5,
+        batch_size: int = 16,
     ) -> None:
         """
         Profiles normal batch variance on clean imagery to set layer-specific drift thresholds.
+        Drift is batch-size dependent, so calibration chunks should match the runtime batch size;
+        the threshold is set from the worst clean chunk.
         """
         model.eval()
         clean_drifts: Dict[str, List[float]] = {}
@@ -52,13 +55,14 @@ class BNDriftMonitor:
                 hooks.append(module.register_forward_hook(make_calib_hook(name)))
 
         with torch.no_grad():
-            model(calibration_batch)
+            for chunk in calibration_batch.split(batch_size):
+                model(chunk)
 
         for h in hooks:
             h.remove()
 
         for name, values in clean_drifts.items():
-            base_drift = float(np_mean := sum(values) / len(values))
+            base_drift = float(max(values))
             # Set dynamic threshold above clean variation
             self._calibrated_tolerances[name] = max(self.drift_threshold, base_drift * safety_margin)
 

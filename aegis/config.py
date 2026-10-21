@@ -11,22 +11,35 @@ from dataclasses import dataclass
 from typing import Tuple
 
 
-# EuroSAT Land Use / Land Cover 10 Classes
+# EuroSAT Land Use / Land Cover 10 Classes.
+# Order MUST match the output logits of the pretrained checkpoint (its config.json
+# `label_names`), which is NOT alphabetical. Using alphabetical order yields chance accuracy.
 EUROSAT_CLASSES: Tuple[str, ...] = (
-    "AnnualCrop",
     "Forest",
-    "HerbaceousVegetation",
-    "Highway",
-    "Industrial",
-    "Pasture",
-    "PermanentCrop",
-    "Residential",
     "River",
+    "Highway",
+    "AnnualCrop",
     "SeaLake",
+    "HerbaceousVegetation",
+    "Industrial",
+    "Residential",
+    "PermanentCrop",
+    "Pasture",
 )
 
 EUROSAT_NUM_CLASSES: int = len(EUROSAT_CLASSES)
+# Native EuroSAT RGB chip size (Sentinel-2, 10 m/px)
 EUROSAT_IMAGE_SIZE: Tuple[int, int, int] = (3, 64, 64)
+
+# Checkpoint preprocessing (timm pretrained_cfg): chips are bicubic-upsampled to 224 and
+# normalized with EuroSAT channel statistics. Measured on 1,000 real chips:
+# 64 px input -> 18.5% accuracy, 224 px input -> 92.8% accuracy.
+MODEL_INPUT_SIZE: int = 224
+EUROSAT_NORM_MEAN: Tuple[float, float, float] = (0.3445, 0.3803, 0.4077)
+EUROSAT_NORM_STD: Tuple[float, float, float] = (0.0915, 0.0652, 0.0553)
+
+# Default on-disk location of the extracted EuroSAT RGB dataset (class-named folders)
+DEFAULT_EUROSAT_DATA_DIR: str = "data/eurosat/2750"
 
 # Pretrained Checkpoint on Hugging Face Hub
 DEFAULT_EUROSAT_MODEL_REPO: str = "cm93/resnet18-eurosat"
@@ -76,6 +89,8 @@ class SatellitePayloadBudgetConfig:
     # Energy modeling constants (picojoules per bit transferred / written)
     spi_flash_read_energy_pj_per_bit: float = 15.0
     dram_write_energy_pj_per_bit: float = 25.0
+    # Assumed LPDDR4-class read cost (order of magnitude, ~10-30 pJ/bit); charges T3 CRC scans
+    dram_read_energy_pj_per_bit: float = 20.0
     radio_rx_energy_pj_per_bit: float = 500.0  # Satellite RF receiver power proxy
 
     # Inference energy proxy (Jetson Xavier NX running ResNet-18 at 15W TDP)

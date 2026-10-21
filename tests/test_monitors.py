@@ -30,7 +30,7 @@ def test_activation_envelope_detection(test_setup):
     """Verifies that Tier 1 cleanly passes on healthy inputs and catches exponent-MSB flips."""
     model, registry, calib_batch, injector = test_setup
 
-    monitor = ActivationEnvelopeMonitor(multiplier=6.0)
+    monitor = ActivationEnvelopeMonitor(margin=0.5)
     monitor.profile_clean_bounds(model, calib_batch)
     monitor.attach(model)
 

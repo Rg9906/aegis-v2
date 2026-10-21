@@ -74,11 +74,23 @@ class AegisHealthMonitor:
 
     def refresh_golden_checksums(self) -> None:
         """
-        Recomputes the Tier 3 golden CRC-32 checksums to reflect the current model state.
-        Must be called after any selective restore + BN recalibration to prevent
-        false-positive checksum alarms from updated BN running statistics.
+        Recomputes the Tier 3 golden CRC-32 checksums from the *current* model state.
+
+        WARNING: any corruption present at call time (e.g. in blocks that were not restored)
+        becomes part of the new reference and can never again be confirmed by Tier 3.
+        Only call this when the model is known to be fully clean (e.g. right after a full
+        reload, or after deliberately re-baselining BN statistics following a lossy restore).
+        The lossless golden-store pipeline does not need it.
         """
         self.tier3_checksum.compute_golden_checksums()
+
+    def rebaseline_blocks(self, block_ids: List[str]) -> None:
+        """
+        Re-baselines Tier 3 for blocks that were just restored from a LOSSY (INT8) golden copy.
+        Unlike refresh_golden_checksums(), this only touches blocks whose contents are known-good.
+        """
+        for block_id in block_ids:
+            self.tier3_checksum.rebaseline_block(block_id)
 
     def _map_layer_name_to_block_id(self, layer_name: str) -> str:
         """Maps PyTorch module name (e.g. 'backbone.layer2.0.conv1') to LayerRegistry block_id."""
@@ -128,7 +140,10 @@ class AegisHealthMonitor:
             confirmed_blocks = candidate_blocks
 
         is_healthy = (len(confirmed_blocks) == 0)
-        sorted_flagged = sorted(list(confirmed_blocks))
+        # Order by forward-pass position (registry order: stem -> layer1..4 -> classifier),
+        # so the primary suspect is the most upstream confirmed block, not the alphabetical first
+        forward_order = {bid: i for i, bid in enumerate(self.registry.block_ids)}
+        sorted_flagged = sorted(confirmed_blocks, key=lambda b: forward_order.get(b, len(forward_order)))
         primary_suspect = sorted_flagged[0] if sorted_flagged else None
 
         return HealthReport(

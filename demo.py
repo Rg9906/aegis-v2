@@ -14,6 +14,7 @@ import time
 import torch
 
 from aegis.config import EUROSAT_CLASSES
+from aegis.data.eurosat import load_eurosat_splits
 from aegis.fault_engine.ieee754 import FLOAT32_EXPONENT_MSB
 from aegis.fault_engine.injector import ModelFaultInjector
 from aegis.models.eurosat_classifier import EuroSATResNet18
@@ -58,25 +59,29 @@ def run_demonstration():
     print(f"  [OK] Compressed Golden Store: {store.total_compressed_bytes / (1024*1024):.2f} MB (zstd level 3)")
     print(f"  [OK] Onboard Compression Ratio: {store.overall_compression_ratio:.2f}x")
 
-    # Synthetic validation imagery for demonstration
+    # Real Sentinel-2 EuroSAT chips: disjoint unlabeled calibration set + labeled evaluation set
     torch.manual_seed(42)
-    val_images = torch.randn(16, 3, 64, 64)
-    val_labels = torch.randint(0, 10, (16,))
+    splits = load_eurosat_splits(calib_per_class=10, eval_per_class=10, seed=0)
+    val_images, val_labels = splits.eval_images, splits.eval_labels
+    print(f"  [OK] Loaded {splits.calib_images.size(0)} calibration + {val_labels.numel()} evaluation EuroSAT chips")
 
     monitor = AegisHealthMonitor(classifier.backbone, registry)
-    monitor.calibrate(val_images[:8])
+    monitor.calibrate(splits.calib_images)
     monitor.attach()
     print("  [OK] Multi-Tier Health Monitor calibrated and attached to forward hooks.")
 
     recalibrator = BNRecalibrator(buffer_capacity=64)
-    recalibrator.ingest_unlabeled_imagery(val_images[:16])
+    recalibrator.ingest_unlabeled_imagery(splits.calib_images)
     restorer = DetectionGatedRestorer(registry, store, recalibrator)
 
     # 3. Baseline Clean Inference
     preds_clean, _ = classifier.predict(val_images[:4])
+    clean_acc = classifier.evaluate(val_images, val_labels)["accuracy"]
     print("\n[Step 3/5] Error-Free Baseline Inference:")
     for i, p in enumerate(preds_clean.tolist()):
-        print(f"  Sample {i+1}: Class {p} ({EUROSAT_CLASSES[p]})")
+        truth = EUROSAT_CLASSES[val_labels[i].item()]
+        print(f"  Sample {i+1}: predicted {EUROSAT_CLASSES[p]:<22} (truth: {truth})")
+    print(f"  Clean accuracy on {val_labels.numel()} chips: {clean_acc * 100:.1f}%")
 
     report_clean = monitor.diagnose_current_state()
     print(f"  Monitor Diagnostic: is_healthy={report_clean.is_healthy}, flagged_blocks={report_clean.flagged_blocks}")
@@ -94,8 +99,11 @@ def run_demonstration():
 
     # Corrupted forward pass
     monitor.clear()
-    preds_corrupt, _ = classifier.predict(val_images[:4])
-    report_corrupt = monitor.diagnose_current_state(run_tier3_scan=True)
+    preds_corrupt, _ = classifier.predict(val_images[:16])
+    report_corrupt = monitor.diagnose_current_state()
+    monitor.clear()
+    corrupt_acc = classifier.evaluate(val_images, val_labels)["accuracy"]
+    print(f"  Corrupted accuracy: {corrupt_acc * 100:.1f}%  (clean: {clean_acc * 100:.1f}%)")
 
     print(f"\n  Post-Radiation Health Diagnosis:")
     print(f"  [ALERT] is_healthy: {report_corrupt.is_healthy}")
@@ -104,9 +112,10 @@ def run_demonstration():
 
     # 5. Detection-Gated Layer-Selective Restore
     print_banner("AEGIS-v2 AUTONOMOUS IN-SITU REPAIR")
-    print(f"  Gating repair: Restoring ONLY corrupted block [{target_block}]...")
+    print(f"  Gating repair: Restoring ONLY CRC-confirmed block(s) {report_corrupt.tier3_corrupted_blocks}...")
     t_repair = time.perf_counter()
-    event = restorer.process_health_report(report_corrupt, auto_recalibrate=True)
+    # Lossless golden store -> bit-exact restore, no BN recalibration needed
+    event = restorer.process_health_report(report_corrupt, auto_recalibrate=False)
     repair_duration = (time.perf_counter() - t_repair) * 1000.0
 
     print(f"  [REPAIRED] Restored Blocks       : {event.restored_blocks}")
@@ -118,22 +127,26 @@ def run_demonstration():
 
     # Post-restore forward pass
     monitor.clear()
-    monitor.refresh_golden_checksums()  # Sync T3 checksums after BN recalibration
     preds_restored, _ = classifier.predict(val_images[:4])
-    report_restored = monitor.diagnose_current_state()
-    print(f"  [OK] Post-Repair Health    : is_healthy={report_restored.is_healthy}")
+    report_restored = monitor.diagnose_current_state(run_tier3_scan=True)
+    monitor.clear()
+    restored_acc = classifier.evaluate(val_images, val_labels)["accuracy"]
+    print(f"  [OK] Post-Repair Health    : is_healthy={report_restored.is_healthy} (full CRC scan)")
     print(f"  [OK] Prediction Matches Clean: {torch.equal(preds_clean, preds_restored)}")
+    print(f"  [OK] Post-Repair Accuracy  : {restored_acc * 100:.1f}%")
 
     # 6. Mini Mission Comparative Campaign
     print_banner("MULTI-ORBIT COMPARATIVE CAMPAIGN (AEGIS vs BASELINES)")
-    print("  Simulating 24-hour LEO mission with 6 South Atlantic Anomaly (SAA) crossings...")
+    print("  Simulating 24-hour LEO mission (6 SAA crossings, 2-hour steps) on real EuroSAT chips...")
+    monitor.detach()
     sim = MissionSimulationHarness(
         base_model=classifier.backbone,
         val_images=val_images,
         val_labels=val_labels,
+        calib_images=splits.calib_images,
         random_seed=42,
     )
-    sim.run_simulation(total_days=1.0, step_minutes=240.0)
+    sim.run_simulation(total_days=1.0, step_minutes=120.0)
     summary = sim.get_campaign_summary()
 
     print("\n  Campaign Summary Results (24 Simulated LEO Hours):")
@@ -153,8 +166,7 @@ def run_demonstration():
     print(f"  >>> Autonomous Restorations Executed: {summary['aegis_restorations_count']}")
     print(f"  >>> Selective Restore Efficiency: {bytes_tf['aegis_v2']/max(bytes_tf['periodic_scrubbing'],1)*100:.1f}% of full-scrub bandwidth")
 
-    monitor.detach()
-    print_banner("DEMONSTRATION COMPLETE - SYSTEM READY FOR REVIEWERS")
+    print_banner("DEMONSTRATION COMPLETE")
 
 
 if __name__ == "__main__":

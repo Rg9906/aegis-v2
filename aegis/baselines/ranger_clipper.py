@@ -21,16 +21,21 @@ class RangerActivationClipper:
         self.bounds: Dict[str, Tuple[float, float]] = bounds or {}
         self._hooks: List[torch.utils.hooks.RemovableHandle] = []
 
-    def calibrate(self, model: nn.Module, calib_batch: torch.Tensor, multiplier: float = 6.0) -> None:
-        """Profiles upper and lower limits from clean calibration activations."""
+    def calibrate(self, model: nn.Module, calib_batch: torch.Tensor, margin: float = 0.1) -> None:
+        """
+        Profiles per-layer bounds as the observed clean [min, max] (Ranger, DSN'21), widened by
+        `margin` x range so that unseen clean chips are not clipped.
+        """
         self.bounds.clear()
-        stats: Dict[str, List[torch.Tensor]] = {}
+        stats: Dict[str, List[float]] = {}
         hooks: List[torch.utils.hooks.RemovableHandle] = []
 
         def make_calib_hook(name: str):
             def hook(module: nn.Module, inp: Tuple[torch.Tensor, ...], out: torch.Tensor):
                 with torch.no_grad():
-                    stats.setdefault(name, []).append(out.detach().float().view(-1))
+                    lo, hi = float(out.min().item()), float(out.max().item())
+                    prev = stats.get(name, [lo, hi])
+                    stats[name] = [min(prev[0], lo), max(prev[1], hi)]
             return hook
 
         for name, module in model.named_modules():
@@ -38,16 +43,15 @@ class RangerActivationClipper:
                 hooks.append(module.register_forward_hook(make_calib_hook(name)))
 
         with torch.no_grad():
-            model(calib_batch)
+            for chunk in calib_batch.split(32):
+                model(chunk)
 
         for h in hooks:
             h.remove()
 
-        for name, tensors in stats.items():
-            all_acts = torch.cat(tensors)
-            mean = all_acts.mean().item()
-            std = all_acts.std().item() + 1e-6
-            self.bounds[name] = (mean - multiplier * std, mean + multiplier * std)
+        for name, (lo, hi) in stats.items():
+            span = max(hi - lo, 1e-6)
+            self.bounds[name] = (lo - margin * span, hi + margin * span)
 
     def attach(self, model: nn.Module) -> None:
         """Attaches clipping forward hooks to suppress out-of-bounds activations."""

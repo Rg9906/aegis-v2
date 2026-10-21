@@ -27,6 +27,9 @@ class RepairEvent:
     downtime_ms: float
     recalibration_report: Optional[RecalibrationReport] = None
     was_successful: bool = True
+    # Breakdown of total_energy_uj: golden-store read + DRAM write vs. recalibration inference
+    memory_energy_uj: float = 0.0
+    recalibration_energy_uj: float = 0.0
 
 
 class DetectionGatedRestorer:
@@ -54,18 +57,34 @@ class DetectionGatedRestorer:
     def total_restorations_performed(self) -> int:
         return len(self._repair_history)
 
+    @property
+    def cumulative_energy_uj(self) -> float:
+        """Total repair energy including recalibration inference (not just golden-store reads)."""
+        return sum(e.total_energy_uj for e in self._repair_history)
+
+    @property
+    def cumulative_bytes_transferred(self) -> int:
+        return sum(e.total_bytes_transferred for e in self._repair_history)
+
     def process_health_report(
         self,
         report: HealthReport,
         auto_recalibrate: bool = True,
     ) -> Optional[RepairEvent]:
         """
-        Evaluates health report. If anomalies are detected, restores the primary suspect block.
+        Evaluates health report. If anomalies are detected, restores the confirmed blocks.
 
-        Architecture note: When an exponent-field SEU corrupts one block, activation explosions
-        cascade forward through all downstream layers, causing multiple blocks to appear flagged.
-        The correct repair strategy restores only the *primary suspect* (earliest/most upstream
-        flagged block), which eliminates the cascade and avoids unnecessary full-model scrubbing.
+        Architecture note: an exponent-field SEU in one block makes activations explode in every
+        downstream layer, so Tier 1/2 flag many *candidate* blocks. The monitor filters these
+        through Tier 3 CRC-32, so report.tier3_corrupted_blocks contains only blocks whose stored
+        bits actually differ from the golden reference. Those are all restored (cascade victims
+        pass CRC and are left alone). Without Tier 3 confirmation, only the most upstream
+        candidate (primary suspect) is restored.
+
+        auto_recalibrate: the golden store is lossless, so a restored block is bit-exact and
+        needs no recalibration. Recalibration mutates BN running statistics in *every* block
+        (invalidating Tier 3 references) and costs one inference per buffered image; enable it
+        only for lossy (e.g. INT8) golden copies.
         """
         if report.is_healthy or not report.flagged_blocks:
             return None  # No damage detected, skip repair
@@ -76,11 +95,13 @@ class DetectionGatedRestorer:
 
         # Restore only the primary suspect block (root cause), not all downstream cascade victims
         # primary_suspect_block is the earliest flagged block in forward-pass order
-        blocks_to_restore = (
-            [report.primary_suspect_block]
-            if report.primary_suspect_block
-            else report.flagged_blocks
-        )
+        if report.tier3_corrupted_blocks:
+            forward_order = {bid: i for i, bid in enumerate(self.registry.block_ids)}
+            blocks_to_restore = sorted(set(report.tier3_corrupted_blocks), key=forward_order.get)
+        elif report.primary_suspect_block:
+            blocks_to_restore = [report.primary_suspect_block]
+        else:
+            blocks_to_restore = list(report.flagged_blocks)
 
         for block_id in blocks_to_restore:
             clean_block_sd = self.golden_store.retrieve_block(block_id)
@@ -93,15 +114,25 @@ class DetectionGatedRestorer:
 
         elapsed_ms = (time.perf_counter() - start_time) * 1000.0
         bytes_transferred = self.golden_store._cumulative_bytes_read - initial_bytes
-        energy_uj = self.golden_store._cumulative_energy_uj - initial_energy
+        memory_energy_uj = self.golden_store._cumulative_energy_uj - initial_energy
+        # Each recalibration image costs one full forward pass on the payload accelerator
+        recal_energy_uj = (
+            recal_report.samples_processed
+            * self.golden_store.budget_config.inference_energy_mj_per_image
+            * 1000.0
+            if recal_report is not None
+            else 0.0
+        )
 
         event = RepairEvent(
             restored_blocks=list(blocks_to_restore),
             total_bytes_transferred=bytes_transferred,
-            total_energy_uj=energy_uj,
+            total_energy_uj=memory_energy_uj + recal_energy_uj,
             downtime_ms=round(elapsed_ms, 2),
             recalibration_report=recal_report,
             was_successful=True,
+            memory_energy_uj=memory_energy_uj,
+            recalibration_energy_uj=recal_energy_uj,
         )
         self._repair_history.append(event)
         return event
@@ -129,6 +160,7 @@ class DetectionGatedRestorer:
             total_energy_uj=energy_uj,
             downtime_ms=round(elapsed_ms, 2),
             was_successful=True,
+            memory_energy_uj=energy_uj,
         )
         self._repair_history.append(event)
         return event

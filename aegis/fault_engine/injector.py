@@ -47,10 +47,13 @@ class ModelFaultInjector:
         model: nn.Module,
         registry: LayerRegistry,
         generator: Optional[torch.Generator] = None,
+        rng: Optional[np.random.Generator] = None,
     ):
         self.model = model
         self.registry = registry
         self.generator = generator or torch.Generator()
+        # Seeded NumPy generator for block/parameter selection (reproducible campaigns)
+        self.rng = rng if rng is not None else np.random.default_rng()
         self._fault_history: List[InjectedFaultRecord] = []
         self._golden_weights_backup: Dict[str, torch.Tensor] = {
             k: v.clone() for k, v in self.model.state_dict().items()
@@ -108,12 +111,28 @@ class ModelFaultInjector:
         self._fault_history.append(record)
         return record
 
+    def _sample_param_uniform_over_bits(self, block_meta) -> str:
+        """
+        Picks a float32 tensor in the block with probability proportional to its element count,
+        so every stored bit (weights, biases, BN affine and running statistics) is equally likely
+        to be struck. Integer bookkeeping buffers (num_batches_tracked) are excluded.
+        """
+        names, sizes = [], []
+        for key in block_meta.state_dict_keys:
+            tensor = self.registry._resolve_param_by_name(key)
+            if tensor.dtype == torch.float32:
+                names.append(key)
+                sizes.append(tensor.numel())
+        probs = np.asarray(sizes, dtype=np.float64) / float(sum(sizes))
+        return names[int(self.rng.choice(len(names), p=probs))]
+
     def inject_orbital_flux_step(
         self, orbital_state: OrbitalState, target_field: TargetFieldType = "any"
     ) -> List[InjectedFaultRecord]:
         """
         Applies the SBUs and MBUs generated during an orbital time interval.
-        Distributes flips across model blocks weighted proportionally to their bit footprint.
+        Distributes flips across model blocks weighted proportionally to their bit footprint,
+        then across tensors within a block proportionally to their element count.
         """
         records: List[InjectedFaultRecord] = []
         blocks = [self.registry.get_block_metadata(bid) for bid in self.registry.block_ids]
@@ -123,9 +142,8 @@ class ModelFaultInjector:
         # 1. Inject Single Bit Upsets (SBUs)
         for _ in range(orbital_state.total_sbus_generated):
             # Select block weighted by bit count
-            chosen_block_meta = np.random.choice(blocks, p=block_probs)
-            weight_keys = [k for k in chosen_block_meta.state_dict_keys if "weight" in k]
-            param_name = np.random.choice(weight_keys if weight_keys else chosen_block_meta.state_dict_keys)
+            chosen_block_meta = blocks[int(self.rng.choice(len(blocks), p=block_probs))]
+            param_name = self._sample_param_uniform_over_bits(chosen_block_meta)
             target_tensor = self.registry._resolve_param_by_name(param_name)
 
             sbu_logs = inject_random_seus(target_tensor, num_flips=1, target_field=target_field, generator=self.generator)
@@ -147,9 +165,8 @@ class ModelFaultInjector:
 
         # 2. Inject Multiple Bit Upsets (MBUs)
         for _ in range(orbital_state.total_mbus_generated):
-            chosen_block_meta = np.random.choice(blocks, p=block_probs)
-            weight_keys = [k for k in chosen_block_meta.state_dict_keys if "weight" in k]
-            param_name = np.random.choice(weight_keys if weight_keys else chosen_block_meta.state_dict_keys)
+            chosen_block_meta = blocks[int(self.rng.choice(len(blocks), p=block_probs))]
+            param_name = self._sample_param_uniform_over_bits(chosen_block_meta)
             target_tensor = self.registry._resolve_param_by_name(param_name)
 
             center_idx = torch.randint(0, target_tensor.numel(), (1,), generator=self.generator).item()

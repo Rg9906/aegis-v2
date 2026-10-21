@@ -22,6 +22,8 @@ class ChecksumMonitor:
     def __init__(self, registry: LayerRegistry):
         self.registry = registry
         self._golden_checksums: Dict[str, int] = {}
+        # Bytes read by integrity verifications (golden-reference computation excluded)
+        self.bytes_scanned: int = 0
         self.compute_golden_checksums()
 
     def _hash_tensor(self, tensor: torch.Tensor) -> int:
@@ -43,6 +45,13 @@ class ChecksumMonitor:
                 block_crc ^= tensor_crc
             self._golden_checksums[block_id] = block_crc
 
+    def rebaseline_block(self, block_id: str) -> None:
+        """Sets one block's reference CRC to its current contents (use only right after restoring it)."""
+        block_crc = 0
+        for name, tensor in sorted(self.registry.get_block_state_dict(block_id).items()):
+            block_crc ^= self._hash_tensor(tensor)
+        self._golden_checksums[block_id] = block_crc
+
     def verify_block_integrity(self, block_id: str) -> bool:
         """
         Verifies if current block parameters match their golden CRC-32 checksum.
@@ -56,6 +65,7 @@ class ChecksumMonitor:
         for name, tensor in sorted(block_sd.items()):
             tensor_crc = self._hash_tensor(tensor)
             current_crc ^= tensor_crc
+            self.bytes_scanned += tensor.numel() * tensor.element_size()
 
         return current_crc == self._golden_checksums[block_id]
 

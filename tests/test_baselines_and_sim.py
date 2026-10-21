@@ -128,3 +128,22 @@ def test_mission_simulation_harness_mini_run(base_test_env):
     assert "energy_consumed_uj" in summary
     assert "aegis_v2" in summary["mean_accuracy"]
     assert "periodic_scrubbing" in summary["mean_accuracy"]
+
+
+def test_scrub_sweep_and_pareto_points(base_test_env):
+    """Extra scrubbing replicas share the fault stream and feed the accuracy-vs-bandwidth Pareto."""
+    from aegis.reporting import pareto_points
+
+    model, val_images, val_labels = base_test_env
+    sim = MissionSimulationHarness(model, val_images, val_labels, random_seed=1, scrub_sweep_hours=(1.0,))
+    telemetry = sim.run_simulation(total_days=0.125, step_minutes=60.0)
+    assert set(telemetry[-1].acc_scrub_sweep) == {"1"}
+    # 1-hour scrub fires every step -> 3 full reloads
+    assert sim.scrub_sweep[0]["controller"].total_scrubs_executed == 3
+
+    summary = sim.get_campaign_summary()
+    summary["seed"] = 1
+    from dataclasses import asdict
+    points = pareto_points({1: {"summary": summary, "telemetry": [asdict(t) for t in telemetry]}})
+    strategies = {p["strategy"] for p in points}
+    assert "Periodic scrubbing (1 h)" in strategies and "Aegis-v2 selective restore" in strategies

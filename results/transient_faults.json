@@ -1,0 +1,373 @@
+{
+ "summary": {
+  "trials": 40,
+  "bit": 30,
+  "behavioral_alarm_rate": 0.275,
+  "spurious_restore_rate": 0.0,
+  "mean_acc_clean": 0.896875,
+  "mean_acc_faulty": 0.8859375,
+  "mean_acc_faulty_ranger": 0.896875
+ },
+ "trials": [
+  {
+   "layer": "layer3.0.downsample.0",
+   "bit": 30,
+   "behavioral_alarm": false,
+   "crc_confirmed_blocks": [],
+   "acc_clean": 1.0,
+   "acc_faulty": 1.0,
+   "acc_faulty_ranger": 1.0
+  },
+  {
+   "layer": "layer1.0.conv1",
+   "bit": 30,
+   "behavioral_alarm": false,
+   "crc_confirmed_blocks": [],
+   "acc_clean": 1.0,
+   "acc_faulty": 1.0,
+   "acc_faulty_ranger": 1.0
+  },
+  {
+   "layer": "layer4.0.conv1",
+   "bit": 30,
+   "behavioral_alarm": false,
+   "crc_confirmed_blocks": [],
+   "acc_clean": 0.8125,
+   "acc_faulty": 0.8125,
+   "acc_faulty_ranger": 0.8125
+  },
+  {
+   "layer": "layer4.0.conv1",
+   "bit": 30,
+   "behavioral_alarm": false,
+   "crc_confirmed_blocks": [],
+   "acc_clean": 0.8125,
+   "acc_faulty": 0.8125,
+   "acc_faulty_ranger": 0.8125
+  },
+  {
+   "layer": "layer2.0.conv2",
+   "bit": 30,
+   "behavioral_alarm": false,
+   "crc_confirmed_blocks": [],
+   "acc_clean": 0.875,
+   "acc_faulty": 0.875,
+   "acc_faulty_ranger": 0.875
+  },
+  {
+   "layer": "layer2.1.conv2",
+   "bit": 30,
+   "behavioral_alarm": true,
+   "crc_confirmed_blocks": [],
+   "acc_clean": 0.9375,
+   "acc_faulty": 0.9375,
+   "acc_faulty_ranger": 0.9375
+  },
+  {
+   "layer": "layer1.1.conv1",
+   "bit": 30,
+   "behavioral_alarm": false,
+   "crc_confirmed_blocks": [],
+   "acc_clean": 1.0,
+   "acc_faulty": 1.0,
+   "acc_faulty_ranger": 1.0
+  },
+  {
+   "layer": "layer4.0.downsample.0",
+   "bit": 30,
+   "behavioral_alarm": false,
+   "crc_confirmed_blocks": [],
+   "acc_clean": 0.8125,
+   "acc_faulty": 0.8125,
+   "acc_faulty_ranger": 0.8125
+  },
+  {
+   "layer": "layer1.1.conv2",
+   "bit": 30,
+   "behavioral_alarm": true,
+   "crc_confirmed_blocks": [],
+   "acc_clean": 0.8125,
+   "acc_faulty": 0.75,
+   "acc_faulty_ranger": 0.8125
+  },
+  {
+   "layer": "layer1.0.conv2",
+   "bit": 30,
+   "behavioral_alarm": false,
+   "crc_confirmed_blocks": [],
+   "acc_clean": 0.875,
+   "acc_faulty": 0.875,
+   "acc_faulty_ranger": 0.875
+  },
+  {
+   "layer": "layer4.0.conv1",
+   "bit": 30,
+   "behavioral_alarm": false,
+   "crc_confirmed_blocks": [],
+   "acc_clean": 0.9375,
+   "acc_faulty": 0.9375,
+   "acc_faulty_ranger": 0.9375
+  },
+  {
+   "layer": "layer3.0.conv2",
+   "bit": 30,
+   "behavioral_alarm": false,
+   "crc_confirmed_blocks": [],
+   "acc_clean": 1.0,
+   "acc_faulty": 1.0,
+   "acc_faulty_ranger": 1.0
+  },
+  {
+   "layer": "layer4.1.conv2",
+   "bit": 30,
+   "behavioral_alarm": false,
+   "crc_confirmed_blocks": [],
+   "acc_clean": 0.9375,
+   "acc_faulty": 0.9375,
+   "acc_faulty_ranger": 0.9375
+  },
+  {
+   "layer": "layer4.0.downsample.0",
+   "bit": 30,
+   "behavioral_alarm": false,
+   "crc_confirmed_blocks": [],
+   "acc_clean": 0.75,
+   "acc_faulty": 0.75,
+   "acc_faulty_ranger": 0.75
+  },
+  {
+   "layer": "layer4.0.conv2",
+   "bit": 30,
+   "behavioral_alarm": false,
+   "crc_confirmed_blocks": [],
+   "acc_clean": 0.8125,
+   "acc_faulty": 0.8125,
+   "acc_faulty_ranger": 0.8125
+  },
+  {
+   "layer": "layer4.0.downsample.0",
+   "bit": 30,
+   "behavioral_alarm": false,
+   "crc_confirmed_blocks": [],
+   "acc_clean": 0.9375,
+   "acc_faulty": 0.9375,
+   "acc_faulty_ranger": 0.9375
+  },
+  {
+   "layer": "layer3.0.downsample.0",
+   "bit": 30,
+   "behavioral_alarm": false,
+   "crc_confirmed_blocks": [],
+   "acc_clean": 1.0,
+   "acc_faulty": 1.0,
+   "acc_faulty_ranger": 1.0
+  },
+  {
+   "layer": "fc",
+   "bit": 30,
+   "behavioral_alarm": true,
+   "crc_confirmed_blocks": [],
+   "acc_clean": 0.9375,
+   "acc_faulty": 0.875,
+   "acc_faulty_ranger": 0.9375
+  },
+  {
+   "layer": "layer4.0.conv1",
+   "bit": 30,
+   "behavioral_alarm": false,
+   "crc_confirmed_blocks": [],
+   "acc_clean": 0.8125,
+   "acc_faulty": 0.8125,
+   "acc_faulty_ranger": 0.8125
+  },
+  {
+   "layer": "layer3.0.conv1",
+   "bit": 30,
+   "behavioral_alarm": true,
+   "crc_confirmed_blocks": [],
+   "acc_clean": 0.8125,
+   "acc_faulty": 0.75,
+   "acc_faulty_ranger": 0.8125
+  },
+  {
+   "layer": "layer2.0.conv2",
+   "bit": 30,
+   "behavioral_alarm": true,
+   "crc_confirmed_blocks": [],
+   "acc_clean": 0.9375,
+   "acc_faulty": 0.875,
+   "acc_faulty_ranger": 0.9375
+  },
+  {
+   "layer": "layer2.0.downsample.0",
+   "bit": 30,
+   "behavioral_alarm": false,
+   "crc_confirmed_blocks": [],
+   "acc_clean": 1.0,
+   "acc_faulty": 1.0,
+   "acc_faulty_ranger": 1.0
+  },
+  {
+   "layer": "layer3.1.conv2",
+   "bit": 30,
+   "behavioral_alarm": false,
+   "crc_confirmed_blocks": [],
+   "acc_clean": 1.0,
+   "acc_faulty": 1.0,
+   "acc_faulty_ranger": 1.0
+  },
+  {
+   "layer": "layer3.0.conv1",
+   "bit": 30,
+   "behavioral_alarm": false,
+   "crc_confirmed_blocks": [],
+   "acc_clean": 0.8125,
+   "acc_faulty": 0.8125,
+   "acc_faulty_ranger": 0.8125
+  },
+  {
+   "layer": "layer1.1.conv1",
+   "bit": 30,
+   "behavioral_alarm": true,
+   "crc_confirmed_blocks": [],
+   "acc_clean": 0.8125,
+   "acc_faulty": 0.75,
+   "acc_faulty_ranger": 0.8125
+  },
+  {
+   "layer": "layer2.1.conv2",
+   "bit": 30,
+   "behavioral_alarm": false,
+   "crc_confirmed_blocks": [],
+   "acc_clean": 0.875,
+   "acc_faulty": 0.875,
+   "acc_faulty_ranger": 0.875
+  },
+  {
+   "layer": "layer4.0.downsample.0",
+   "bit": 30,
+   "behavioral_alarm": false,
+   "crc_confirmed_blocks": [],
+   "acc_clean": 0.9375,
+   "acc_faulty": 0.9375,
+   "acc_faulty_ranger": 0.9375
+  },
+  {
+   "layer": "layer2.0.conv2",
+   "bit": 30,
+   "behavioral_alarm": true,
+   "crc_confirmed_blocks": [],
+   "acc_clean": 1.0,
+   "acc_faulty": 0.9375,
+   "acc_faulty_ranger": 1.0
+  },
+  {
+   "layer": "layer4.1.conv1",
+   "bit": 30,
+   "behavioral_alarm": false,
+   "crc_confirmed_blocks": [],
+   "acc_clean": 0.8125,
+   "acc_faulty": 0.8125,
+   "acc_faulty_ranger": 0.8125
+  },
+  {
+   "layer": "layer1.0.conv2",
+   "bit": 30,
+   "behavioral_alarm": false,
+   "crc_confirmed_blocks": [],
+   "acc_clean": 0.8125,
+   "acc_faulty": 0.8125,
+   "acc_faulty_ranger": 0.8125
+  },
+  {
+   "layer": "layer3.0.conv1",
+   "bit": 30,
+   "behavioral_alarm": false,
+   "crc_confirmed_blocks": [],
+   "acc_clean": 0.875,
+   "acc_faulty": 0.875,
+   "acc_faulty_ranger": 0.875
+  },
+  {
+   "layer": "layer2.1.conv2",
+   "bit": 30,
+   "behavioral_alarm": true,
+   "crc_confirmed_blocks": [],
+   "acc_clean": 0.9375,
+   "acc_faulty": 0.9375,
+   "acc_faulty_ranger": 0.9375
+  },
+  {
+   "layer": "layer2.0.conv1",
+   "bit": 30,
+   "behavioral_alarm": false,
+   "crc_confirmed_blocks": [],
+   "acc_clean": 1.0,
+   "acc_faulty": 1.0,
+   "acc_faulty_ranger": 1.0
+  },
+  {
+   "layer": "layer2.1.conv1",
+   "bit": 30,
+   "behavioral_alarm": false,
+   "crc_confirmed_blocks": [],
+   "acc_clean": 0.9375,
+   "acc_faulty": 0.9375,
+   "acc_faulty_ranger": 0.9375
+  },
+  {
+   "layer": "layer1.0.conv2",
+   "bit": 30,
+   "behavioral_alarm": true,
+   "crc_confirmed_blocks": [],
+   "acc_clean": 0.75,
+   "acc_faulty": 0.75,
+   "acc_faulty_ranger": 0.75
+  },
+  {
+   "layer": "layer1.1.conv2",
+   "bit": 30,
+   "behavioral_alarm": false,
+   "crc_confirmed_blocks": [],
+   "acc_clean": 0.8125,
+   "acc_faulty": 0.8125,
+   "acc_faulty_ranger": 0.8125
+  },
+  {
+   "layer": "layer1.0.conv2",
+   "bit": 30,
+   "behavioral_alarm": true,
+   "crc_confirmed_blocks": [],
+   "acc_clean": 0.9375,
+   "acc_faulty": 0.875,
+   "acc_faulty_ranger": 0.9375
+  },
+  {
+   "layer": "layer3.0.downsample.0",
+   "bit": 30,
+   "behavioral_alarm": true,
+   "crc_confirmed_blocks": [],
+   "acc_clean": 1.0,
+   "acc_faulty": 1.0,
+   "acc_faulty_ranger": 1.0
+  },
+  {
+   "layer": "layer2.1.conv1",
+   "bit": 30,
+   "behavioral_alarm": false,
+   "crc_confirmed_blocks": [],
+   "acc_clean": 0.9375,
+   "acc_faulty": 0.9375,
+   "acc_faulty_ranger": 0.9375
+  },
+  {
+   "layer": "layer2.0.conv2",
+   "bit": 30,
+   "behavioral_alarm": false,
+   "crc_confirmed_blocks": [],
+   "acc_clean": 0.8125,
+   "acc_faulty": 0.8125,
+   "acc_faulty_ranger": 0.8125
+  }
+ ]
+}
