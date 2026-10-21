@@ -20,7 +20,9 @@ dependencies = [
     "scipy>=1.10.0",
     "huggingface_hub>=0.20.0",
     "streamlit>=1.30.0",
-    "matplotlib>=3.7.0"
+    "matplotlib>=3.7.0",
+    "sgp4>=2.20",
+    "ppigrf>=2.0"
 ]
 
 [project.optional-dependencies]

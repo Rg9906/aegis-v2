@@ -43,7 +43,13 @@ recalibration) · `aegis/baselines` · `aegis/simulation` (mission harness, conf
   needs no BN recalibration (recalibration is off by default and is charged inference energy).
 - Faults are placed uniformly over stored bits (block and tensor chosen proportional to size);
   default `fault_field="any"`. Forcing `"exponent"` inflates severity: disclose it if used.
-- SAA flux is integrated over the minutes of each step that fall inside a pass window.
+- Orbit: default `--orbit tle` = real Sentinel-2A track (SGP4 on `orbits/sentinel2a.tle`, CelesTrak)
+  with the SAA defined physically as low |B| from IGRF (rate ramps 20,000 -> 18,000 nT). This
+  yields ~80 SAA-core min/day and ~82% of upsets in the SAA (flight data cited: ~73%).
+  `--orbit periodic` keeps the old synthetic fixed passes. Either way flux is integrated per minute.
+- The upset-rate constants in `RadiationEnvironmentConfig` (1.66e-7 / 1.25e-5 per bit per day) are
+  attributed to Alsat-1 / Flying Laptop but NOT verified against those papers; check (or derive via
+  SPENVIS / CREME96) before publishing.
 
 ## Status (2026-10-21)
 - Phases 1-4 implemented; evaluation-validity fixes above applied and covered by
@@ -56,8 +62,8 @@ recalibration) · `aegis/baselines` · `aegis/simulation` (mission harness, conf
   T3 CRC scan energy (assumed 20 pJ/bit DRAM read), optional INT8 golden store (`--golden-int8`;
   41.6 -> 9.2 MB, -0.7 pts on 1,000 chips; restored blocks are re-baselined individually),
   transient activation-fault experiment (`experiments/transient_faults.py`: 0% spurious restores).
-- Not done: second architecture (no EuroSAT MobileNet checkpoint; needs fine-tuning), real orbit
-  /AP8 SAA map (periodic pass model only).
+- Not done: second architecture (no EuroSAT MobileNet checkpoint; needs fine-tuning); AP8/AE9
+  trapped-flux model + device cross-section (IGRF |B| ramp is the proxy).
 - Known limitation: T1/T2 hook compute is not in the energy model (CRC scans are);
   the checkpoint's training split is unknown, so clean accuracy may be optimistic (relative
   degradation is unaffected).

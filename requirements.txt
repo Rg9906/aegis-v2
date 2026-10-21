@@ -8,3 +8,5 @@ huggingface_hub>=0.20.0
 streamlit>=1.30.0
 matplotlib>=3.7.0
 pytest>=7.0.0
+sgp4>=2.20
+ppigrf>=2.0

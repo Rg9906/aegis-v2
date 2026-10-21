@@ -99,6 +99,8 @@ class MissionSimulationHarness:
         aegis_recalibrate: bool = False,
         scrub_sweep_hours: Sequence[float] = (),
         golden_int8: bool = False,
+        orbit: str = "periodic",
+        tle_path: Optional[str] = None,
     ):
         self.val_images = val_images
         self.val_labels = val_labels
@@ -140,7 +142,18 @@ class MissionSimulationHarness:
         self.inj_aegis = ModelFaultInjector(self.model_aegis, self.reg_aegis)
 
         # 4. Mitigation Engines
-        self.rad_env = LEORadiationEnvironment(rad_config, random_seed=random_seed)
+        # "tle": real SGP4 ground track + IGRF low-field SAA; "periodic": fixed synthetic passes
+        if orbit == "tle":
+            from aegis.fault_engine.orbit_model import DEFAULT_TLE_PATH, OrbitTrackRadiationEnvironment
+
+            self.rad_env = OrbitTrackRadiationEnvironment(
+                rad_config, random_seed=random_seed, tle_path=tle_path or DEFAULT_TLE_PATH
+            )
+        elif orbit == "periodic":
+            self.rad_env = LEORadiationEnvironment(rad_config, random_seed=random_seed)
+        else:
+            raise ValueError(f"Unknown orbit model '{orbit}'")
+        self.orbit = orbit
 
         # Ranger Setup
         self.ranger_clipper = RangerActivationClipper()
@@ -430,6 +443,8 @@ class MissionSimulationHarness:
             "scrubs_executed": self.scrub_controller.total_scrubs_executed,
             "aegis_recalibrate": self.aegis_recalibrate,
             "golden_int8": self.golden_int8,
+            "orbit": self.orbit,
+            "saa_minutes_total": round(sum(t.saa_minutes_in_step for t in history), 1),
             "golden_store_mb": {
                 "aegis": round(self.store_aegis.total_compressed_bytes / 1e6, 2),
                 "periodic_scrubbing": round(self.store_scrub.total_compressed_bytes / 1e6, 2),

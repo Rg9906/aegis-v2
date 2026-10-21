@@ -41,6 +41,9 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--scrub-interval-hours", type=float, default=12.0)
     p.add_argument("--scrub-sweep-hours", type=float, nargs="*", default=[],
                    help="Extra periodic-scrub intervals to simulate for the Pareto sweep")
+    p.add_argument("--orbit", choices=["tle", "periodic"], default="tle",
+                   help="tle: real Sentinel-2A track + IGRF SAA; periodic: synthetic fixed passes")
+    p.add_argument("--tle", default=None, help="TLE file (default orbits/sentinel2a.tle)")
     p.add_argument("--golden-int8", action="store_true",
                    help="Aegis golden copy stored as per-channel INT8 (lossy restores)")
     p.add_argument("--recalibrate", action="store_true", help="Enable post-restore BN recalibration")
@@ -75,6 +78,8 @@ def main() -> None:
             aegis_recalibrate=args.recalibrate,
             scrub_sweep_hours=args.scrub_sweep_hours,
             golden_int8=args.golden_int8,
+            orbit=args.orbit,
+            tle_path=args.tle,
         )
         print(f"\n[seed {seed}] clean accuracy {sim.clean_accuracy:.4f}")
         sim.run_simulation(total_days=args.days, step_minutes=args.step_minutes, progress=True)
