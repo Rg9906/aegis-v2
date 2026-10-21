@@ -45,11 +45,12 @@ recalibration) · `aegis/baselines` · `aegis/simulation` (mission harness, conf
   default `fault_field="any"`. Forcing `"exponent"` inflates severity: disclose it if used.
 - Orbit: default `--orbit tle` = real Sentinel-2A track (SGP4 on `orbits/sentinel2a.tle`, CelesTrak)
   with the SAA defined physically as low |B| from IGRF (rate ramps 20,000 -> 18,000 nT). This
-  yields ~80 SAA-core min/day and ~82% of upsets in the SAA (flight data cited: ~73%).
+  yields ~80 SAA-core min/day and ~82% of upsets in the SAA.
   `--orbit periodic` keeps the old synthetic fixed passes. Either way flux is integrated per minute.
-- The upset-rate constants in `RadiationEnvironmentConfig` (1.66e-7 / 1.25e-5 per bit per day) are
-  attributed to Alsat-1 / Flying Laptop but NOT verified against those papers; check (or derive via
-  SPENVIS / CREME96) before publishing.
+- Upset rates are calibrated (2026-10-21) to the measured Alsat-1 mean, 4.04e-7 upsets/bit/day with
+  98.55% single-bit (Bentoutou 2011, full text verified; source in `RadiationEnvironmentConfig`).
+  Still assumed: the SAA-core/background ratio (75.3x) and transfer from Alsat-1 (686 km, 2002 SRAM)
+  to Sentinel-2A (786 km, modern memory). The Flying Laptop 73.41% SAA figure is unverified.
 
 ## Status (2026-10-21)
 - Phases 1-4 implemented; evaluation-validity fixes above applied and covered by

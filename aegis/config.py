@@ -50,20 +50,35 @@ DEFAULT_EUROSAT_WEIGHTS_FILE: str = "model.safetensors"
 class RadiationEnvironmentConfig:
     """
     Physical radiation environment specifications for Low Earth Orbit (LEO).
-    Calibrated against Alsat-1 and Flying Laptop telemetry data.
+
+    Calibration source (verified, full text): Y. Bentoutou, "Performance Comparison of Real Time
+    EDAC Systems for Applications On-Board Small Satellites", Int. J. Electrical & Computer Eng.
+    5(5), 2011 (zenodo.org/records/1072680). Alsat-1, 686 km SSO, commercial SRAM, Nov 2002 -
+    Aug 2010: 265,649 upsets in 2,622 days = mean 4.04e-7 upsets/bit/day; 98.55% single-bit,
+    1.45% multi-bit; yearly mean rose from 41 to 119 upsets/day over the solar cycle.
+
+    The two rates below are set so that the orbit-averaged rate on the real Sentinel-2A track
+    (OrbitTrackRadiationEnvironment: 79.9 SAA-core-equivalent min/day) equals that 4.04e-7.
+    The SAA-core / background RATIO (75.3x) is a modelling assumption carried over from the
+    earlier configuration and is NOT measured. Alsat-1 flew 100 km lower than Sentinel-2A and
+    used 2002-era SRAM; rates for the payload's actual memory need SPENVIS/CREME96 + device data.
     """
     # Background upset rate outside South Atlantic Anomaly (upsets / bit / day)
-    background_rate_per_bit_day: float = 1.66e-7
+    background_rate_per_bit_day: float = 7.89e-8
 
-    # Peak upset rate inside SAA core (upsets / bit / day)
-    saa_peak_rate_per_bit_day: float = 1.25e-5
+    # Peak upset rate inside SAA core (upsets / bit / day); ratio to background is assumed
+    saa_peak_rate_per_bit_day: float = 5.94e-6
 
-    # Percentage of total daily upsets occurring within SAA (~73.41% per Flying Laptop)
+    # Measured orbit-averaged rate the two values above are calibrated to (Alsat-1)
+    measured_mean_rate_per_bit_day: float = 4.04e-7
+
+    # Fraction of daily upsets within the SAA as attributed to Flying Laptop (Noeldeke et al.,
+    # Adv. Space Res. 67(6), 2021). NOT verified against the paper (paywalled); informational only.
     saa_upset_fraction: float = 0.7341
 
-    # Ratio of Single Bit Upsets (SBU) vs Multiple Bit Upsets (MBU)
-    sbu_fraction: float = 0.80
-    mbu_fraction: float = 0.20
+    # Single- vs multi-bit upsets (Alsat-1 measured: 98.55% single-bit)
+    sbu_fraction: float = 0.9855
+    mbu_fraction: float = 0.0145
     mbu_max_cluster_size: int = 4
 
     # Orbit parameters (~600 km altitude, 97° inclination Sun-Synchronous LEO)
