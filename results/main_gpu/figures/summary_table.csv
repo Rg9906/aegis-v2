@@ -1,0 +1,12 @@
+strategy,mean_accuracy,mb_per_day
+Aegis-v2 selective restore,0.8704,160.35
+Periodic scrubbing (12 h),0.3695,83.17
+Ranger + Aegis-v2,0.7479,175.37
+Ground uplink reload,0.6622,109.44
+Periodic scrubbing (1 h),0.8933,998.02
+Periodic scrubbing (3 h),0.7756,332.67
+Periodic scrubbing (6 h),0.6642,166.34
+Periodic scrubbing (24 h),0.2197,41.58
+Ranger clipping,0.385,0.0
+BLINK re-centering,0.3401,0.0
+Unmitigated,0.14,0.0

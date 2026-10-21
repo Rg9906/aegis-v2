@@ -1,0 +1,356 @@
+{
+ "config": {
+  "days": 3.0,
+  "step_minutes": 60.0,
+  "seeds": [
+   0,
+   1,
+   2
+  ],
+  "eval_per_class": 15,
+  "calib_per_class": 10,
+  "fault_field": "any",
+  "scrub_interval_hours": 12.0,
+  "scrub_sweep_hours": [
+   1.0,
+   3.0,
+   6.0,
+   24.0
+  ],
+  "orbit": "tle",
+  "tle": null,
+  "golden_int8": false,
+  "recalibrate": false,
+  "device": "cuda",
+  "name": "main_gpu",
+  "out_dir": "results"
+ },
+ "per_seed": [
+  {
+   "total_simulated_days": 3.0,
+   "total_faults_accumulated": 442,
+   "exponent_msb_flips_total": 17,
+   "fault_field": "any",
+   "clean_accuracy": 0.8933,
+   "mean_accuracy": {
+    "unmitigated": 0.1791,
+    "ranger_clipping": 0.5528,
+    "blink_recentering": 0.5268,
+    "periodic_scrubbing": 0.3118,
+    "aegis_v2": 0.8933,
+    "ranger_aegis": 0.8933,
+    "ground_uplink": 0.6622
+   },
+   "final_accuracy": {
+    "unmitigated": 0.1,
+    "ranger_clipping": 0.2667,
+    "blink_recentering": 0.0933,
+    "periodic_scrubbing": 0.8933,
+    "aegis_v2": 0.8933,
+    "ranger_aegis": 0.8933,
+    "ground_uplink": 0.1
+   },
+   "energy_consumed_uj": {
+    "periodic_scrubbing": 83658.8,
+    "aegis_v2": 229111.71,
+    "ranger_aegis": 159797.38,
+    "ground_uplink": 1635391.91,
+    "aegis_v2_monitor_share": 81786.2,
+    "energy_savings_percent": -173.86
+   },
+   "bytes_transferred": {
+    "periodic_scrubbing": 249505368,
+    "aegis_v2": 439248456,
+    "ranger_aegis": 305476984,
+    "ground_uplink": 344714617
+   },
+   "ranger_aegis_restorations_count": 18,
+   "ground_uplink_contacts_used": 11,
+   "aegis_restorations_count": 18,
+   "aegis_alarm_steps": 18,
+   "scrubs_executed": 6,
+   "aegis_recalibrate": false,
+   "golden_int8": false,
+   "orbit": "tle",
+   "saa_minutes_total": 239.8,
+   "golden_store_mb": {
+    "aegis": 41.58,
+    "periodic_scrubbing": 41.58
+   },
+   "scrub_sweep": {
+    "1": {
+     "mean_accuracy": 0.8933,
+     "bytes_transferred": 2994064416,
+     "energy_consumed_uj": 1003905.57
+    },
+    "3": {
+     "mean_accuracy": 0.7439,
+     "bytes_transferred": 998021472,
+     "energy_consumed_uj": 334635.19
+    },
+    "6": {
+     "mean_accuracy": 0.5666,
+     "bytes_transferred": 499010736,
+     "energy_consumed_uj": 167317.6
+    },
+    "24": {
+     "mean_accuracy": 0.2691,
+     "bytes_transferred": 124752684,
+     "energy_consumed_uj": 41829.4
+    }
+   },
+   "seed": 0,
+   "wall_seconds": 193.7
+  },
+  {
+   "total_simulated_days": 3.0,
+   "total_faults_accumulated": 461,
+   "exponent_msb_flips_total": 15,
+   "fault_field": "any",
+   "clean_accuracy": 0.8933,
+   "mean_accuracy": {
+    "unmitigated": 0.0999,
+    "ranger_clipping": 0.1268,
+    "blink_recentering": 0.1979,
+    "periodic_scrubbing": 0.302,
+    "aegis_v2": 0.8245,
+    "ranger_aegis": 0.4571,
+    "ground_uplink": 0.6213
+   },
+   "final_accuracy": {
+    "unmitigated": 0.1,
+    "ranger_clipping": 0.1,
+    "blink_recentering": 0.1,
+    "periodic_scrubbing": 0.8933,
+    "aegis_v2": 0.72,
+    "ranger_aegis": 0.72,
+    "ground_uplink": 0.72
+   },
+   "energy_consumed_uj": {
+    "periodic_scrubbing": 83658.8,
+    "aegis_v2": 288196.09,
+    "ranger_aegis": 600120.59,
+    "ground_uplink": 1798095.03,
+    "aegis_v2_monitor_share": 97844.5,
+    "energy_savings_percent": -244.49
+   },
+   "bytes_transferred": {
+    "periodic_scrubbing": 249505368,
+    "aegis_v2": 567528425,
+    "ranger_aegis": 994850866,
+    "ground_uplink": 373991985
+   },
+   "ranger_aegis_restorations_count": 42,
+   "ground_uplink_contacts_used": 11,
+   "aegis_restorations_count": 25,
+   "aegis_alarm_steps": 25,
+   "scrubs_executed": 6,
+   "aegis_recalibrate": false,
+   "golden_int8": false,
+   "orbit": "tle",
+   "saa_minutes_total": 239.8,
+   "golden_store_mb": {
+    "aegis": 41.58,
+    "periodic_scrubbing": 41.58
+   },
+   "scrub_sweep": {
+    "1": {
+     "mean_accuracy": 0.8933,
+     "bytes_transferred": 2994064416,
+     "energy_consumed_uj": 1003905.57
+    },
+    "3": {
+     "mean_accuracy": 0.7734,
+     "bytes_transferred": 998021472,
+     "energy_consumed_uj": 334635.19
+    },
+    "6": {
+     "mean_accuracy": 0.6744,
+     "bytes_transferred": 499010736,
+     "energy_consumed_uj": 167317.6
+    },
+    "24": {
+     "mean_accuracy": 0.1644,
+     "bytes_transferred": 124752684,
+     "energy_consumed_uj": 41829.4
+    }
+   },
+   "seed": 1,
+   "wall_seconds": 192.5
+  },
+  {
+   "total_simulated_days": 3.0,
+   "total_faults_accumulated": 421,
+   "exponent_msb_flips_total": 12,
+   "fault_field": "any",
+   "clean_accuracy": 0.8933,
+   "mean_accuracy": {
+    "unmitigated": 0.1409,
+    "ranger_clipping": 0.4753,
+    "blink_recentering": 0.2957,
+    "periodic_scrubbing": 0.4947,
+    "aegis_v2": 0.8933,
+    "ranger_aegis": 0.8933,
+    "ground_uplink": 0.7032
+   },
+   "final_accuracy": {
+    "unmitigated": 0.1,
+    "ranger_clipping": 0.4467,
+    "blink_recentering": 0.2133,
+    "periodic_scrubbing": 0.8933,
+    "aegis_v2": 0.8933,
+    "ranger_aegis": 0.8933,
+    "ground_uplink": 0.7533
+   },
+   "energy_consumed_uj": {
+    "periodic_scrubbing": 83658.8,
+    "aegis_v2": 223957.31,
+    "ranger_aegis": 143511.73,
+    "ground_uplink": 1308930.85,
+    "aegis_v2_monitor_share": 77590.22,
+    "energy_savings_percent": -167.7
+   },
+   "bytes_transferred": {
+    "periodic_scrubbing": 249505368,
+    "aegis_v2": 436378202,
+    "ranger_aegis": 278033720,
+    "ground_uplink": 266268624
+   },
+   "ranger_aegis_restorations_count": 18,
+   "ground_uplink_contacts_used": 10,
+   "aegis_restorations_count": 18,
+   "aegis_alarm_steps": 18,
+   "scrubs_executed": 6,
+   "aegis_recalibrate": false,
+   "golden_int8": false,
+   "orbit": "tle",
+   "saa_minutes_total": 239.8,
+   "golden_store_mb": {
+    "aegis": 41.58,
+    "periodic_scrubbing": 41.58
+   },
+   "scrub_sweep": {
+    "1": {
+     "mean_accuracy": 0.8933,
+     "bytes_transferred": 2994064416,
+     "energy_consumed_uj": 1003905.57
+    },
+    "3": {
+     "mean_accuracy": 0.8095,
+     "bytes_transferred": 998021472,
+     "energy_consumed_uj": 334635.19
+    },
+    "6": {
+     "mean_accuracy": 0.7515,
+     "bytes_transferred": 499010736,
+     "energy_consumed_uj": 167317.6
+    },
+    "24": {
+     "mean_accuracy": 0.2257,
+     "bytes_transferred": 124752684,
+     "energy_consumed_uj": 41829.4
+    }
+   },
+   "seed": 2,
+   "wall_seconds": 188.6
+  }
+ ],
+ "aggregate": {
+  "mean_accuracy": {
+   "unmitigated": {
+    "mean": 0.14,
+    "std": 0.0396
+   },
+   "ranger_clipping": {
+    "mean": 0.385,
+    "std": 0.2269
+   },
+   "blink_recentering": {
+    "mean": 0.3401,
+    "std": 0.1689
+   },
+   "periodic_scrubbing": {
+    "mean": 0.3695,
+    "std": 0.1085
+   },
+   "aegis_v2": {
+    "mean": 0.8704,
+    "std": 0.0397
+   },
+   "ranger_aegis": {
+    "mean": 0.7479,
+    "std": 0.2518
+   },
+   "ground_uplink": {
+    "mean": 0.6622,
+    "std": 0.041
+   }
+  },
+  "final_accuracy": {
+   "unmitigated": {
+    "mean": 0.1,
+    "std": 0.0
+   },
+   "ranger_clipping": {
+    "mean": 0.2711,
+    "std": 0.1734
+   },
+   "blink_recentering": {
+    "mean": 0.1355,
+    "std": 0.0674
+   },
+   "periodic_scrubbing": {
+    "mean": 0.8933,
+    "std": 0.0
+   },
+   "aegis_v2": {
+    "mean": 0.8355,
+    "std": 0.1001
+   },
+   "ranger_aegis": {
+    "mean": 0.8355,
+    "std": 0.1001
+   },
+   "ground_uplink": {
+    "mean": 0.5244,
+    "std": 0.3679
+   }
+  },
+  "energy_uj": {
+   "periodic_scrubbing": {
+    "mean": 83658.8,
+    "std": 0.0
+   },
+   "aegis_v2": {
+    "mean": 247088.37,
+    "std": 35693.493
+   },
+   "ranger_aegis": {
+    "mean": 301143.2333,
+    "std": 259049.996
+   },
+   "ground_uplink": {
+    "mean": 1580805.93,
+    "std": 249108.6523
+   }
+  },
+  "bytes": {
+   "periodic_scrubbing": {
+    "mean": 249505368.0,
+    "std": 0.0
+   },
+   "aegis_v2": {
+    "mean": 481051694.3333,
+    "std": 74904794.9039
+   },
+   "ranger_aegis": {
+    "mean": 526120523.3333,
+    "std": 406164232.5305
+   },
+   "ground_uplink": {
+    "mean": 328325075.3333,
+    "std": 55700479.6507
+   }
+  }
+ }
+}
