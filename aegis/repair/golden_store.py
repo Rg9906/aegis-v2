@@ -56,7 +56,8 @@ class CompressedGoldenStore:
         self._uncompressed_sizes.clear()
 
         for block_id in self.registry.block_ids:
-            block_sd = self.registry.get_block_state_dict(block_id)
+            # Golden copy lives in (simulated) flash: serialize from host memory even if the model is on GPU
+            block_sd = {k: v.detach().cpu() for k, v in self.registry.get_block_state_dict(block_id).items()}
             if self.quantize_int8:
                 block_sd = self._quantize(block_sd)
             # Serialize tensors using safetensors binary format

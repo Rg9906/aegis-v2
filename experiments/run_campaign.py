@@ -47,6 +47,7 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--golden-int8", action="store_true",
                    help="Aegis golden copy stored as per-channel INT8 (lossy restores)")
     p.add_argument("--recalibrate", action="store_true", help="Enable post-restore BN recalibration")
+    p.add_argument("--device", default="auto", help="auto | cpu | cuda")
     p.add_argument("--name", default="main")
     p.add_argument("--out-dir", default="results")
     return p.parse_args()
@@ -58,10 +59,16 @@ def main() -> None:
     os.makedirs(out_dir, exist_ok=True)
     torch.set_grad_enabled(False)
 
-    classifier = EuroSATResNet18(pretrained=True)
+    device = torch.device("cuda" if args.device == "auto" and torch.cuda.is_available()
+                          else ("cpu" if args.device == "auto" else args.device))
+    classifier = EuroSATResNet18(pretrained=True).to(device)
     # Data split is fixed across seeds so seeds vary only the radiation process
     splits = load_eurosat_splits(calib_per_class=args.calib_per_class, eval_per_class=args.eval_per_class, seed=0)
-    print(f"Eval chips: {splits.eval_labels.numel()}  calib chips: {splits.calib_images.size(0)}")
+    splits.calib_images = splits.calib_images.to(device)
+    splits.eval_images = splits.eval_images.to(device)
+    splits.eval_labels = splits.eval_labels.to(device)
+    print(f"Device: {device}  eval chips: {splits.eval_labels.numel()}  calib chips: {splits.calib_images.size(0)}",
+          flush=True)
 
     seed_summaries = []
     for seed in args.seeds:
