@@ -27,6 +27,11 @@ Design rationale: `AEGIS_RESEARCH_STUDY_AND_PROTOTYPE_BLUEPRINT.md`; prior-art m
   `checkpoints/`, gitignored), then `run_campaign.py ... --arch mobilenet_v2`
 - GPU runs: `notebooks/aegis_colab.ipynb` (repo `Rg9906/aegis-v2`, token in Colab secret `GH_TOKEN`)
 - Dashboard: `streamlit run dashboard/app.py`
+- Frontend (React mission dossier, replaces the Streamlit dashboard for presentation):
+  `python experiments/export_frontend_data.py --name <campaign>` (writes `frontend/public/data/`,
+  replays each seed's fault stream and checks it against recorded flip counts), then in `frontend/`:
+  `npm install`, `npm run dev` (http://localhost:5173) or `npm run build` (static site in `dist/`).
+  Campaigns without the audit strategy are shown as "pre-fix" (INC-01/02) automatically.
 
 ## Layout
 `aegis/fault_engine` (IEEE-754 flips, LEO/SAA flux model, injector) · `aegis/monitor` (T1 activation

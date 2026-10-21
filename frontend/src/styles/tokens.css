@@ -1,0 +1,85 @@
+/* Design tokens. Series colors come from the validated categorical palette
+   (aegis/reporting.py STRATEGIES); dark mode uses its own validated steps. */
+
+:root {
+  --font-display: "Instrument Serif", "Times New Roman", serif;
+  --font-ui: "Geist Variable", system-ui, sans-serif;
+  --font-mono: "Geist Mono Variable", ui-monospace, monospace;
+
+  --radius-sm: 8px;
+  --radius: 14px;
+  --radius-lg: 22px;
+  --gutter: clamp(16px, 4vw, 48px);
+  --maxw: 1320px;
+  --ease: cubic-bezier(0.2, 0.7, 0.1, 1);
+}
+
+/* Dark is the default theme */
+:root,
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #06080c;
+  --bg-raise: #0b0e14;
+  --surface: #10141c;
+  --surface-2: #151a24;
+  --line: rgba(220, 230, 255, 0.08);
+  --line-strong: rgba(220, 230, 255, 0.16);
+  --ink: #f0efec;
+  --ink-2: #c3c2b7;
+  --ink-3: #8b8a83;
+  --ink-4: #5d5c57;
+  --accent: #3987e5;
+  --accent-soft: rgba(57, 135, 229, 0.16);
+  --accent-glow: rgba(57, 135, 229, 0.45);
+  --land: rgba(214, 222, 240, 0.34);
+  --land-far: rgba(214, 222, 240, 0.08);
+  --graticule: rgba(214, 222, 240, 0.06);
+  --saa: 255, 138, 76;
+  --crit: #ff5d5d;
+  --warn: #f2b33d;
+  --good: #3ccf91;
+  --grain-opacity: 0.05;
+
+  --s-acc_aegis: #3987e5;
+  --s-acc_periodic_scrub: #d95926;
+  --s-acc_ranger: #199e70;
+  --s-acc_blink: #c98500;
+  --s-acc_unmitigated: #d55181;
+  --s-acc_uplink: #008300;
+  --s-acc_ranger_aegis: #9085e9;
+  --s-acc_aegis_audit: #e66767;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f6f5f1;
+  --bg-raise: #efede7;
+  --surface: #fcfcfb;
+  --surface-2: #f3f2ee;
+  --line: rgba(20, 22, 30, 0.09);
+  --line-strong: rgba(20, 22, 30, 0.18);
+  --ink: #0b0b0b;
+  --ink-2: #3b3a37;
+  --ink-3: #6b6a65;
+  --ink-4: #9a9993;
+  --accent: #2a78d6;
+  --accent-soft: rgba(42, 120, 214, 0.12);
+  --accent-glow: rgba(42, 120, 214, 0.3);
+  --land: rgba(30, 34, 46, 0.42);
+  --land-far: rgba(30, 34, 46, 0.1);
+  --graticule: rgba(30, 34, 46, 0.07);
+  --saa: 226, 96, 30;
+  --crit: #d93a3a;
+  --warn: #b97a00;
+  --good: #128a5a;
+  --grain-opacity: 0.035;
+
+  --s-acc_aegis: #2a78d6;
+  --s-acc_periodic_scrub: #eb6834;
+  --s-acc_ranger: #1baf7a;
+  --s-acc_blink: #eda100;
+  --s-acc_unmitigated: #e87ba4;
+  --s-acc_uplink: #008300;
+  --s-acc_ranger_aegis: #6250d6;
+  --s-acc_aegis_audit: #e34948;
+}

@@ -48,3 +48,7 @@ results/smoke/
 
 # Locally fine-tuned weights (MobileNetV2)
 /checkpoints/
+
+# Frontend build artifacts
+frontend/node_modules/
+frontend/dist/
