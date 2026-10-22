@@ -1,0 +1,26 @@
+{
+ "damaging_trials": 8,
+ "collapse": [
+  [
+   "Highway",
+   3
+  ],
+  [
+   "River",
+   2
+  ],
+  [
+   "AnnualCrop",
+   1
+  ],
+  [
+   "HerbaceousVegetation",
+   1
+  ],
+  [
+   "Pasture",
+   1
+  ]
+ ],
+ "diag_mean": 0.24249999999999994
+}

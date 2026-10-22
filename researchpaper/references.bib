@@ -1,8 +1,7 @@
 % References for "Aegis-v2" (researchpaper/aegis_v2_paper.tex).
 %
-% Entries marked "VERIFY" are recent (2026) preprints or proceedings taken from the project's prior-art map
-% (Project Aegis_ Prior-Art Map ... .md). Their identifiers and titles are as listed there; authors and venues
-% were not independently verified and are omitted rather than guessed. Check each one before submission.
+% Recent (2024-2026) preprints were checked against their arXiv / proceedings pages in Oct. 2026 (titles,
+% authors, dates). Works whose records could not be retrieved were dropped rather than cited unverified.
 
 % ---------------- Radiation effects and space environment ----------------
 
@@ -46,7 +45,7 @@
   author    = {Vallado, David A. and Crawford, Paul and Hujsak, Richard and Kelso, T. S.},
   title     = {Revisiting Spacetrack Report \#3},
   booktitle = {AIAA/AAS Astrodynamics Specialist Conference},
-  note      = {AIAA 2006-6753},
+  note      = {{AIAA} 2006-6753},
   year      = {2006}
 }
 
@@ -121,24 +120,24 @@
 }
 
 @misc{lange2024mlspace,
-  author       = {Lange, Kevin and others},
+  author       = {Lange, Kevin and Fontana, Federico and Rossi, Francesco and Varile, Mattia and Apruzzese, Giovanni},
   title        = {Machine Learning in Space: Surveying the Robustness of On-Board {ML} Models to Radiation},
-  howpublished = {arXiv:2405.02642 (IEEE Space Computing Conference)},
+  howpublished = {arXiv:2405.02642},
   year         = {2024}
 }
 
 @misc{rednet2024,
+  author       = {Wang, Meiqi and Qiu, Han and Xu, Longnv and Wang, Di and Li, Yuanjie and Zhang, Tianwei and Liu, Jun and Li, Hewu},
   title        = {A Case for Application-Aware Space Radiation Tolerance in Orbital Computing},
   howpublished = {arXiv:2407.11853},
-  year         = {2024},
-  note         = {{RedNet}; validated on the {Chaohu-1} {SAR} satellite payload}
+  year         = {2024}
 }
 
-% VERIFY
-@misc{zedac2026,
-  title        = {Radiation-Resilient {AI} for Small Satellites: A Universal Multi-Bit {EDAC} Architecture for Protecting On-Board Neural Network Models in Memory and Storage},
-  howpublished = {Small Satellite Conference},
-  year         = {2026}
+@inproceedings{zedac2026,
+  author    = {Sun, Yin and Wazir, Nauman and Chang, Joseph and Chong, Kwen-Siong and Shu, Wei and They, Hocklai},
+  title     = {Radiation-Resilient {AI} for Small Satellites: A Universal Multi-Bit {EDAC} Architecture for Protecting On-Board Neural Network Models in Memory and Storage},
+  booktitle = {Proc. Small Satellite Conference},
+  year      = {2026}
 }
 
 % ---------------- Models and training ----------------
@@ -230,6 +229,7 @@
   author    = {Chen, Zitao and Li, Guanpeng and Pattabiraman, Karthik},
   title     = {A Low-Cost Fault Corrector for Deep Neural Networks through Range Restriction},
   booktitle = {Proc. IEEE/IFIP Int. Conf. Dependable Systems and Networks (DSN)},
+  note      = {arXiv:2003.13874},
   year      = {2021}
 }
 
@@ -241,6 +241,7 @@
 }
 
 @misc{proact2024,
+  author       = {Mousavi, Seyedhamidreza and Ahmadilivani, Mohammad Hasan and Raik, Jaan and Jenihhin, Maksim and Daneshtalab, Masoud},
   title        = {{ProAct}: Progressive Training for Hybrid Clipped Activation Function to Enhance Resilience of {DNNs}},
   howpublished = {arXiv:2406.06313},
   year         = {2024}
@@ -260,11 +261,11 @@
   year      = {2020}
 }
 
-@inproceedings{ponader2021milr,
-  author    = {Ponader, Jonathan and Kundu, Sandip and Solihin, Yan},
-  title     = {{MILR}: Mathematically Induced Layer Recovery for Plaintext Space Error Correction of {CNNs}},
-  booktitle = {Proc. IEEE/IFIP Int. Conf. Dependable Systems and Networks (DSN)},
-  year      = {2021}
+@misc{ponader2021milr,
+  author       = {Ponader, Jonathan and Kundu, Sandip and Solihin, Yan},
+  title        = {{MILR}: Mathematically Induced Layer Recovery for Plaintext Space Error Correction of {CNNs}},
+  howpublished = {arXiv:2010.14687},
+  year         = {2020}
 }
 
 @inproceedings{rakin2019bfa,
@@ -275,7 +276,7 @@
 }
 
 @article{dossantos2023neutron,
-  author  = {Fernandes dos Santos, Fernando and others},
+  author  = {Fernandes dos Santos, Fernando and Kritikakou, Angeliki and Rodriguez Condia, Josie E. and Guerrero Balaguera, Juan David and Sonza Reorda, Matteo and Sentieys, Olivier and Rech, Paolo},
   title   = {Characterizing a Neutron-Induced Fault Model for Deep Neural Networks},
   journal = {IEEE Transactions on Nuclear Science},
   volume  = {70},
@@ -298,66 +299,46 @@
   year      = {2018}
 }
 
-% VERIFY
 @misc{blink2026,
+  author       = {Khan, Marzia and Malhotra, Akul and Gupta, Sumeet Kumar},
   title        = {{BLINK}: Batch Normalization-based Integrity Checkpoints for In-Situ Detection and Mitigation of Diverse Weight Corruptions in {DNN} Accelerators},
   howpublished = {arXiv:2609.06781},
   year         = {2026}
 }
 
-% VERIFY
 @misc{cog2026,
+  author       = {Parchekani, Bahram and Nazari, Samira and Azarpeyvand, Ali and Ahmadilivani, Mohammad Hasan and Ghasempouri, Tara and Raik, Jaan},
   title        = {{CoG}-Guided Weight Correction for Fault-Tolerant Deep Neural Networks},
   howpublished = {arXiv:2607.15753},
   year         = {2026}
 }
 
-% VERIFY
-@misc{shnn2026,
-  title        = {Self-Healing Neural Networks via Modular Patch Layers for Diverse Structural and Adversarial Damages},
-  howpublished = {Scientific Reports, doi:10.1038/s41598-026-57677-x},
-  year         = {2026}
-}
-
-% VERIFY
 @misc{sentry2026,
+  author       = {Bhaduri, Pramit Kumar and Taheri, Mahdi and Nazari, Samira and Jenihhin, Maksim and Herglotz, Christian and H{\"u}bner, Michael},
   title        = {{SENTRY}: Statistical Reliability Analysis of Vision Transformers Under Soft Errors},
   howpublished = {arXiv:2606.07620},
   year         = {2026}
 }
 
-% VERIFY
 @misc{safeneureka2026,
+  author       = {Tedeschi, Riccardo and Ghionda, Luigi and Nadalini, Alessandro and Tortorella, Yvan and Prasad, Arpan Suravi and Benini, Luca and Rossi, Davide and Conti, Francesco},
   title        = {{Safe-NEureka}: A Hybrid Modular Redundant {DNN} Accelerator for On-board Satellite {AI} Processing},
   howpublished = {arXiv:2602.04803},
   year         = {2026}
 }
 
-% VERIFY
 @misc{eccdnn2025,
+  author       = {Raji, Mohsen and Zaree, Mohammad and Soroush, Kimia},
   title        = {An {ECC}-based Fault Tolerance Approach for {DNNs}},
   howpublished = {arXiv:2508.12347},
   year         = {2025}
 }
 
-% VERIFY
-@misc{weightsentry2025,
-  title        = {{WeightSentry}: Real-Time Bit-Flip Protection for Deep Neural Networks on {GPUs}},
-  howpublished = {ACM, doi:10.1145/3768725.3768734},
-  year         = {2025}
-}
-
-% VERIFY
 @misc{aispace2026,
+  author       = {Li, Qing and Zhang, Qiyang and Xu, Daliang and others},
   title        = {{AI} Infrastructure in Space: How Far Can We Go?},
   howpublished = {arXiv:2608.21034},
   year         = {2026}
-}
-
-@misc{uspatent12634320,
-  title        = {System and Method for Providing Advanced Neuron-Level Vulnerability Analysis in Neural Network-Based Models},
-  howpublished = {U.S. Patent 12,634,320},
-  note         = {Describes replacing corrupted layers with backup copies}
 }
 
 % ---------------- Plasticity ----------------
@@ -376,4 +357,31 @@
   volume  = {632},
   pages   = {768--774},
   year    = {2024}
+}
+
+% ---------------- Added after the October 2026 literature check ----------------
+
+@article{noldeke2021flp,
+  author  = {N{\"o}ldeke, Christoph and B{\"o}ttcher, Maximilian and Mohr, Ulrich and Gai{\ss}er, Steffen and Alvarez Rua, Mikel and Eickhoff, Jens and Leslie, Mike and Von Thun, Matt and Klinkner, Sabine and Varatharajoo, Renuganth},
+  title   = {Flight Single Event Upset Investigations on the ``{Flying Laptop}'' Satellite Mission},
+  journal = {Advances in Space Research},
+  volume  = {67},
+  pages   = {2000--2009},
+  year    = {2021},
+  note    = {doi:10.1016/j.asr.2020.12.032}
+}
+
+@misc{vinck2025fat,
+  author       = {Vinck, Toon and Jonckers, Na{\"\i}n and Dekkers, Gert and Prinzie, Jeffrey and Karsmakers, Peter},
+  title        = {Mitigating Multiple Single-Event Upsets during Deep Neural Network Inference using Fault-Aware Training},
+  howpublished = {arXiv:2502.09374 (Topical Workshop on Electronics for Particle Physics)},
+  year         = {2025}
+}
+
+@article{gutierrez2024segmentation,
+  author  = {Guti{\'e}rrez-Zaballa, Jon and Basterretxea, Koldo and Echanobe, Javier},
+  title   = {Evaluating Single Event Upsets in Deep Neural Networks for Semantic Segmentation: An Embedded System Perspective},
+  journal = {Journal of Systems Architecture},
+  year    = {2024},
+  note    = {doi:10.1016/j.sysarc.2024.103242}
 }

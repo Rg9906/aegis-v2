@@ -1,22 +1,27 @@
 # Aegis-v2 research paper
 
-IEEE two-column journal-format paper describing the whole project: problem, background, related work, fault model,
-method, experimental setup, results (both final campaigns), lessons learned, threats to validity and future work.
+IEEE two-column journal-format paper describing the whole project: problem, background, related work, fault model and
+simulator, method, experimental setup, results on both final campaigns, an exact ablation, a single-fault detection
+study, class-confusion analysis, energy accounting, lessons learned, threats to validity and future work.
 
 | File | What it is |
 |---|---|
-| `aegis_v2_paper.pdf` | Compiled paper (11 pages) |
-| `aegis_v2_paper.tex` | LaTeX source (`IEEEtran`, journal mode); Figs. 1 and 3 are TikZ inside the source |
-| `references.bib` | Bibliography (47 entries) |
-| `make_paper_figures.py` | Regenerates `figures/*.pdf` from `results/main_final*` and the frontend orbit export |
-| `figures/` | Vector figures: accuracy over time, Pareto, costs, fault timeline, orbit/SAA map |
+| `aegis_v2_paper.pdf` | Compiled paper |
+| `aegis_v2_paper.tex` | LaTeX source (`IEEEtran`, journal mode); the concept, IEEE-754, simulator and architecture diagrams are TikZ inside the source |
+| `references.bib` | Bibliography; recent preprints checked against their arXiv/proceedings records (Oct. 2026) |
+| `make_paper_figures.py` | Main figures: accuracy over time, Pareto, costs, fault timeline, orbit/SAA map |
+| `make_paper_tables.py` | Every data table (`tables/*.tex`) plus the secondary figures: per-seed, rate profile, traffic over time, energy breakdown, ablation, detection study, class confusion |
+| `figures/`, `tables/` | Generated outputs; do not edit by hand |
 
 ## Build
 
-Figures (needs the final campaigns in `results/` and `frontend/public/data/main_final.json`):
+Data (from the repository root; the detection study is CPU-heavy, roughly 30 s per trial on a laptop CPU):
 
 ```bash
+python experiments/detection_study.py --arch mobilenet_v2 --trials-per-field 30
+python experiments/detection_study.py --arch resnet18 --trials-per-field 30
 python researchpaper/make_paper_figures.py
+python researchpaper/make_paper_tables.py
 ```
 
 PDF (TeX Live / TinyTeX / MiKTeX with `IEEEtran`, `tikz`, `booktabs`, `algorithms`):
@@ -26,17 +31,20 @@ cd researchpaper
 pdflatex aegis_v2_paper && bibtex aegis_v2_paper && pdflatex aegis_v2_paper && pdflatex aegis_v2_paper
 ```
 
-Overleaf: upload the `.tex`, `.bib` and the `figures/` folder; the default compiler works.
+Overleaf: upload the `.tex`, `.bib`, `figures/` and `tables/`; the default compiler works.
+
+## Sources of every number
+
+* `results/main_final/`, `results/main_final_mobilenet/`: the final campaigns (Tables X-XV, XVIII; Figs. 7-14).
+* `results/main_gpu/`: the pre-fix campaign on identical fault streams, used only for the upstream-rule ablation.
+* `results/detection_study_*.json`: single-fault detection study and class confusion.
+* `results/transient_faults.json`: transient activation faults.
+* `frontend/public/data/main_final*.json`: per-step fault records and the orbit/field export.
 
 ## Before submitting
 
 * **Affiliation.** The author footnote has a `[Department, Institution]` placeholder.
-* **Verify recent references.** Entries marked `% VERIFY` in `references.bib` (BLINK, CoG, SHNN, SENTRY, ZEDAC,
-  Safe-NEureka, the ECC-for-DNN preprint, WeightSentry, "AI Infrastructure in Space") are 2026 preprints or proceedings
-  taken from the project's prior-art map. Their titles and identifiers are as listed there; authors were not verified
-  and are omitted rather than guessed. RedNet (arXiv 2407.11853) also has no author list for the same reason.
-* **Numbers.** Every number comes from `results/main_final/report.md`, `results/main_final_mobilenet/report.md`, the
-  seed JSON files or `results/transient_faults.json`. If you rerun the campaigns, regenerate the figures and update the
-  tables in Section VII.
-* **Claims to keep honest.** The advantage is bandwidth and availability, not energy (Section VII-D). Three seeds and
-  150 evaluation chips give wide intervals; the MobileNetV2 paired differences are mostly not significant.
+* **References.** Two items from the prior-art map (SHNN in Scientific Reports, WeightSentry) and a U.S. patent whose
+  record did not match its claimed content were dropped because their records could not be verified.
+* **Claims to keep honest.** The advantage is bandwidth and availability, not energy. Three seeds and 150 evaluation
+  chips give wide intervals; the MobileNetV2 paired differences are mostly not significant.

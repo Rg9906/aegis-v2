@@ -38,6 +38,12 @@ Design rationale: `AEGIS_RESEARCH_STUDY_AND_PROTOTYPE_BLUEPRINT.md`; prior-art m
 - Paper: `researchpaper/` (IEEEtran two-column). `python researchpaper/make_paper_figures.py` regenerates
   `figures/*.pdf`; build with `pdflatex -> bibtex -> pdflatex x2` in `researchpaper/`. Entries marked `% VERIFY` in
   `references.bib` are unverified 2026 preprints from the prior-art map. Paper numbers come from the final campaigns.
+  `make_paper_tables.py` generates every data table (`tables/*.tex`, read with `\tablebody`) and secondary figures;
+  never hand-copy numbers into the .tex. Class names must follow `EUROSAT_CLASSES` order (not alphabetical).
+- Single-fault detection study: `experiments/detection_study.py` (results/detection_study_*.json, 150 trials/arch,
+  ~5-30 s/trial on CPU). Finding: only exponent-MSB flips damage (12/30 per arch), all detected + localized, 0 false
+  restores; ResNet-18 T1 false-alarms at layer4.0 on ~12% of clean batches (T3 absorbs them, costs CRC reads).
+- Upstream-rule ablation uses `results/main_gpu` (pre-fix, identical fault streams) only for that comparison.
 
 ## Layout
 `aegis/fault_engine` (IEEE-754 flips, LEO/SAA flux model, injector) · `aegis/monitor` (T1 activation
