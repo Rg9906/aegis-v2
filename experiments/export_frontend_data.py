@@ -161,6 +161,7 @@ def main() -> None:
     p = argparse.ArgumentParser()
     p.add_argument("--name", default="main")
     p.add_argument("--results-dir", default="results")
+    p.add_argument("--out-dir", default=OUT_DIR)
     args = p.parse_args()
     runs = load_seed_runs(os.path.join(args.results_dir, args.name))
     if not runs:
@@ -213,12 +214,12 @@ def main() -> None:
         "track": track,
         "field": field_grid(track["alt_km"]) if track else None,
     }
-    os.makedirs(OUT_DIR, exist_ok=True)
-    out = os.path.join(OUT_DIR, f"{args.name}.json")
+    os.makedirs(args.out_dir, exist_ok=True)
+    out = os.path.join(args.out_dir, f"{args.name}.json")
     with open(out, "w", encoding="utf-8") as f:
         json.dump(payload, f, separators=(",", ":"))
-    index_path = os.path.join(OUT_DIR, "index.json")
-    names = sorted({os.path.splitext(n)[0] for n in os.listdir(OUT_DIR) if n.endswith(".json") and n != "index.json"})
+    index_path = os.path.join(args.out_dir, "index.json")
+    names = sorted({os.path.splitext(n)[0] for n in os.listdir(args.out_dir) if n.endswith(".json") and n != "index.json"})
     with open(index_path, "w", encoding="utf-8") as f:
         json.dump({"campaigns": names}, f)
     print(f"Wrote {out} ({os.path.getsize(out) / 1e6:.2f} MB); index: {names}")

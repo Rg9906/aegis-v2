@@ -1,0 +1,399 @@
+{
+ "config": {
+  "days": 3.0,
+  "step_minutes": 60.0,
+  "seeds": [
+   0,
+   1,
+   2
+  ],
+  "eval_per_class": 15,
+  "calib_per_class": 10,
+  "fault_field": "any",
+  "scrub_interval_hours": 12.0,
+  "scrub_sweep_hours": [
+   1.0,
+   3.0,
+   6.0,
+   24.0
+  ],
+  "orbit": "tle",
+  "tle": null,
+  "golden_int8": false,
+  "recalibrate": false,
+  "audit_hours": 6.0,
+  "arch": "resnet18",
+  "checkpoint": null,
+  "device": "cuda",
+  "name": "main_final",
+  "out_dir": "results"
+ },
+ "per_seed": [
+  {
+   "total_simulated_days": 3.0,
+   "total_faults_accumulated": 442,
+   "exponent_msb_flips_total": 17,
+   "fault_field": "any",
+   "clean_accuracy": 0.8933,
+   "mean_accuracy": {
+    "unmitigated": 0.1791,
+    "ranger_clipping": 0.5528,
+    "blink_recentering": 0.5268,
+    "periodic_scrubbing": 0.3118,
+    "aegis_v2": 0.8933,
+    "ranger_aegis": 0.8933,
+    "ground_uplink": 0.6613,
+    "aegis_audit": 0.8933
+   },
+   "final_accuracy": {
+    "unmitigated": 0.1,
+    "ranger_clipping": 0.2667,
+    "blink_recentering": 0.0933,
+    "periodic_scrubbing": 0.8933,
+    "aegis_v2": 0.8933,
+    "ranger_aegis": 0.8933,
+    "ground_uplink": 0.1,
+    "aegis_audit": 0.8933
+   },
+   "energy_consumed_uj": {
+    "periodic_scrubbing": 83658.8,
+    "aegis_v2": 408846.51,
+    "ranger_aegis": 347925.92,
+    "ground_uplink": 1877614.96,
+    "aegis_audit": 586667.04,
+    "aegis_v2_monitor_share": 235958.31,
+    "aegis_v2_monitor_compute_share": 138198.03,
+    "energy_savings_percent": -388.71
+   },
+   "bytes_transferred": {
+    "periodic_scrubbing": 249505368,
+    "aegis_v2": 515491362,
+    "ranger_aegis": 404750778,
+    "ground_uplink": 362287765,
+    "aegis_audit": 789443029
+   },
+   "ranger_aegis_restorations_count": 19,
+   "ground_uplink_contacts_used": 11,
+   "aegis_restorations_count": 18,
+   "aegis_audit_hours": 6.0,
+   "aegis_audits_executed": 12,
+   "aegis_alarm_steps": 18,
+   "scrubs_executed": 6,
+   "aegis_recalibrate": false,
+   "golden_int8": false,
+   "orbit": "tle",
+   "saa_minutes_total": 239.8,
+   "golden_store_mb": {
+    "aegis": 41.58,
+    "periodic_scrubbing": 41.58
+   },
+   "scrub_sweep": {
+    "1": {
+     "mean_accuracy": 0.8933,
+     "bytes_transferred": 2994064416,
+     "energy_consumed_uj": 1003905.57
+    },
+    "3": {
+     "mean_accuracy": 0.7439,
+     "bytes_transferred": 998021472,
+     "energy_consumed_uj": 334635.19
+    },
+    "6": {
+     "mean_accuracy": 0.5666,
+     "bytes_transferred": 499010736,
+     "energy_consumed_uj": 167317.6
+    },
+    "24": {
+     "mean_accuracy": 0.2691,
+     "bytes_transferred": 124752684,
+     "energy_consumed_uj": 41829.4
+    }
+   },
+   "seed": 0,
+   "arch": "resnet18",
+   "wall_seconds": 201.3
+  },
+  {
+   "total_simulated_days": 3.0,
+   "total_faults_accumulated": 461,
+   "exponent_msb_flips_total": 15,
+   "fault_field": "any",
+   "clean_accuracy": 0.8933,
+   "mean_accuracy": {
+    "unmitigated": 0.0999,
+    "ranger_clipping": 0.1268,
+    "blink_recentering": 0.1979,
+    "periodic_scrubbing": 0.302,
+    "aegis_v2": 0.8355,
+    "ranger_aegis": 0.8355,
+    "ground_uplink": 0.6217,
+    "aegis_audit": 0.8813
+   },
+   "final_accuracy": {
+    "unmitigated": 0.1,
+    "ranger_clipping": 0.1,
+    "blink_recentering": 0.1,
+    "periodic_scrubbing": 0.8933,
+    "aegis_v2": 0.72,
+    "ranger_aegis": 0.72,
+    "ground_uplink": 0.72,
+    "aegis_audit": 0.8933
+   },
+   "energy_consumed_uj": {
+    "periodic_scrubbing": 83658.8,
+    "aegis_v2": 482069.18,
+    "ranger_aegis": 409449.51,
+    "ground_uplink": 2117345.07,
+    "aegis_audit": 634251.1,
+    "aegis_v2_monitor_share": 259117.18,
+    "aegis_v2_monitor_compute_share": 138198.03,
+    "energy_savings_percent": -476.23
+   },
+   "bytes_transferred": {
+    "periodic_scrubbing": 249505368,
+    "aegis_v2": 664769913,
+    "ranger_aegis": 523331924,
+    "ground_uplink": 409273248,
+    "aegis_audit": 890085138
+   },
+   "ranger_aegis_restorations_count": 25,
+   "ground_uplink_contacts_used": 11,
+   "aegis_restorations_count": 25,
+   "aegis_audit_hours": 6.0,
+   "aegis_audits_executed": 12,
+   "aegis_alarm_steps": 25,
+   "scrubs_executed": 6,
+   "aegis_recalibrate": false,
+   "golden_int8": false,
+   "orbit": "tle",
+   "saa_minutes_total": 239.8,
+   "golden_store_mb": {
+    "aegis": 41.58,
+    "periodic_scrubbing": 41.58
+   },
+   "scrub_sweep": {
+    "1": {
+     "mean_accuracy": 0.8933,
+     "bytes_transferred": 2994064416,
+     "energy_consumed_uj": 1003905.57
+    },
+    "3": {
+     "mean_accuracy": 0.7734,
+     "bytes_transferred": 998021472,
+     "energy_consumed_uj": 334635.19
+    },
+    "6": {
+     "mean_accuracy": 0.6744,
+     "bytes_transferred": 499010736,
+     "energy_consumed_uj": 167317.6
+    },
+    "24": {
+     "mean_accuracy": 0.1644,
+     "bytes_transferred": 124752684,
+     "energy_consumed_uj": 41829.4
+    }
+   },
+   "seed": 1,
+   "arch": "resnet18",
+   "wall_seconds": 197.2
+  },
+  {
+   "total_simulated_days": 3.0,
+   "total_faults_accumulated": 421,
+   "exponent_msb_flips_total": 12,
+   "fault_field": "any",
+   "clean_accuracy": 0.8933,
+   "mean_accuracy": {
+    "unmitigated": 0.1409,
+    "ranger_clipping": 0.4753,
+    "blink_recentering": 0.2957,
+    "periodic_scrubbing": 0.4947,
+    "aegis_v2": 0.8933,
+    "ranger_aegis": 0.8933,
+    "ground_uplink": 0.7039,
+    "aegis_audit": 0.8933
+   },
+   "final_accuracy": {
+    "unmitigated": 0.1,
+    "ranger_clipping": 0.4467,
+    "blink_recentering": 0.2133,
+    "periodic_scrubbing": 0.8933,
+    "aegis_v2": 0.8933,
+    "ranger_aegis": 0.8933,
+    "ground_uplink": 0.7533,
+    "aegis_audit": 0.8933
+   },
+   "energy_consumed_uj": {
+    "periodic_scrubbing": 83658.8,
+    "aegis_v2": 405660.76,
+    "ranger_aegis": 326687.73,
+    "ground_uplink": 1715756.53,
+    "aegis_audit": 600124.05,
+    "aegis_v2_monitor_share": 233604.6,
+    "aegis_v2_monitor_compute_share": 138198.03,
+    "energy_savings_percent": -384.9
+   },
+   "bytes_transferred": {
+    "periodic_scrubbing": 249505368,
+    "aegis_v2": 513008701,
+    "ranger_aegis": 359057506,
+    "ground_uplink": 321900541,
+    "aegis_audit": 836589074
+   },
+   "ranger_aegis_restorations_count": 19,
+   "ground_uplink_contacts_used": 10,
+   "aegis_restorations_count": 19,
+   "aegis_audit_hours": 6.0,
+   "aegis_audits_executed": 12,
+   "aegis_alarm_steps": 19,
+   "scrubs_executed": 6,
+   "aegis_recalibrate": false,
+   "golden_int8": false,
+   "orbit": "tle",
+   "saa_minutes_total": 239.8,
+   "golden_store_mb": {
+    "aegis": 41.58,
+    "periodic_scrubbing": 41.58
+   },
+   "scrub_sweep": {
+    "1": {
+     "mean_accuracy": 0.8933,
+     "bytes_transferred": 2994064416,
+     "energy_consumed_uj": 1003905.57
+    },
+    "3": {
+     "mean_accuracy": 0.8095,
+     "bytes_transferred": 998021472,
+     "energy_consumed_uj": 334635.19
+    },
+    "6": {
+     "mean_accuracy": 0.7515,
+     "bytes_transferred": 499010736,
+     "energy_consumed_uj": 167317.6
+    },
+    "24": {
+     "mean_accuracy": 0.2257,
+     "bytes_transferred": 124752684,
+     "energy_consumed_uj": 41829.4
+    }
+   },
+   "seed": 2,
+   "arch": "resnet18",
+   "wall_seconds": 195.3
+  }
+ ],
+ "aggregate": {
+  "mean_accuracy": {
+   "unmitigated": {
+    "mean": 0.14,
+    "std": 0.0396
+   },
+   "ranger_clipping": {
+    "mean": 0.385,
+    "std": 0.2269
+   },
+   "blink_recentering": {
+    "mean": 0.3401,
+    "std": 0.1689
+   },
+   "periodic_scrubbing": {
+    "mean": 0.3695,
+    "std": 0.1085
+   },
+   "aegis_v2": {
+    "mean": 0.874,
+    "std": 0.0334
+   },
+   "ranger_aegis": {
+    "mean": 0.874,
+    "std": 0.0334
+   },
+   "ground_uplink": {
+    "mean": 0.6623,
+    "std": 0.0411
+   },
+   "aegis_audit": {
+    "mean": 0.8893,
+    "std": 0.0069
+   }
+  },
+  "final_accuracy": {
+   "unmitigated": {
+    "mean": 0.1,
+    "std": 0.0
+   },
+   "ranger_clipping": {
+    "mean": 0.2711,
+    "std": 0.1734
+   },
+   "blink_recentering": {
+    "mean": 0.1355,
+    "std": 0.0674
+   },
+   "periodic_scrubbing": {
+    "mean": 0.8933,
+    "std": 0.0
+   },
+   "aegis_v2": {
+    "mean": 0.8355,
+    "std": 0.1001
+   },
+   "ranger_aegis": {
+    "mean": 0.8355,
+    "std": 0.1001
+   },
+   "ground_uplink": {
+    "mean": 0.5244,
+    "std": 0.3679
+   },
+   "aegis_audit": {
+    "mean": 0.8933,
+    "std": 0.0
+   }
+  },
+  "energy_uj": {
+   "periodic_scrubbing": {
+    "mean": 83658.8,
+    "std": 0.0
+   },
+   "aegis_v2": {
+    "mean": 432192.15,
+    "std": 43224.1349
+   },
+   "ranger_aegis": {
+    "mean": 361354.3867,
+    "std": 42983.9603
+   },
+   "ground_uplink": {
+    "mean": 1903572.1867,
+    "std": 202048.6874
+   },
+   "aegis_audit": {
+    "mean": 607014.0633,
+    "std": 24528.8586
+   }
+  },
+  "bytes": {
+   "periodic_scrubbing": {
+    "mean": 249505368.0,
+    "std": 0.0
+   },
+   "aegis_v2": {
+    "mean": 564423325.3333,
+    "std": 86911559.3213
+   },
+   "ranger_aegis": {
+    "mean": 429046736.0,
+    "std": 84789393.6979
+   },
+   "ground_uplink": {
+    "mean": 364487184.6667,
+    "std": 43727858.023
+   },
+   "aegis_audit": {
+    "mean": 838705747.0,
+    "std": 50354431.3287
+   }
+  }
+ }
+}

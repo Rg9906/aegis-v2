@@ -9,6 +9,14 @@ const LINKS = [
   ["method", "Method"],
 ] as const;
 
+/** Human-readable campaign names for the picker (falls back to the folder name). */
+function campaignLabel(name: string) {
+  const arch = name.includes("mobilenet") ? "MobileNetV2" : "ResNet-18";
+  if (name === "main_gpu") return `${arch} · first run (pre-fix)`;
+  if (name.startsWith("main_final")) return `${arch} · final`;
+  return `${arch} · ${name}`;
+}
+
 interface Props {
   campaigns: string[];
   current: string;
@@ -67,7 +75,7 @@ export default function Nav({ campaigns, current, onCampaign, theme, onTheme }: 
             <select value={current} onChange={(e) => onCampaign(e.target.value)}>
               {campaigns.map((c) => (
                 <option key={c} value={c}>
-                  {c}
+                  {campaignLabel(c)}
                 </option>
               ))}
             </select>

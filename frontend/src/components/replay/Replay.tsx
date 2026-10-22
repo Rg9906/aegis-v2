@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Campaign, StrategyAttr } from "../../lib/types";
 import { seedKeys } from "../../lib/data";
 import { SPEEDS, useMissionClock } from "../../lib/useMissionClock";
@@ -29,6 +29,9 @@ export default function Replay({ campaign, theme }: { campaign: Campaign; theme:
 
   useEffect(() => setSeed(defaultSeed), [defaultSeed]);
 
+  // Keyboard handler registered once; it reads the latest toggle through a ref
+  const toggleRef = useRef(clock.toggle);
+  toggleRef.current = clock.toggle;
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const el = document.activeElement;
@@ -36,11 +39,11 @@ export default function Replay({ campaign, theme }: { campaign: Campaign; theme:
       const sec = document.getElementById("replay")!.getBoundingClientRect();
       if (sec.top > window.innerHeight || sec.bottom < 0) return; // only while the replay is on screen
       e.preventDefault();
-      clock.toggle();
+      toggleRef.current();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [clock]);
+  }, []);
 
   const toggle = (a: StrategyAttr) =>
     setHidden((h) => {

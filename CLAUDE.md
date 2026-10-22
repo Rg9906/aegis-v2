@@ -93,7 +93,16 @@ recalibration) · `aegis/baselines` · `aegis/simulation` (mission harness, conf
   input at an assumed 6.9 pJ/op = 12.5 mJ / 1.82 G MACs): ~1.9 mJ per 16-image ResNet-18 batch,
   ~138 mJ over 3 days, i.e. ~10 full-reload equivalents of memory energy, so it matters for the
   energy comparison. Report generator adds it analytically to campaigns run before it existed.
-  MobileNetV2 path implemented and smoke-tested on CPU; real fine-tune + campaign pending (Colab).
+  MobileNetV2 path trained and run on Colab (see final campaigns below).
+- Final campaigns (2026-10-22, Colab T4, 3 seeds x 3 days, real orbit, audit strategy included):
+  `results/main_final/` (ResNet-18, clean 89.3%) and `results/main_final_mobilenet/` (MobileNetV2,
+  clean 99.3%, held-out split verified; checkpoint sidecar in its `checkpoints/`). Headline: Aegis-v2
+  holds 87.4% (ResNet) / 99.3% (MobileNetV2) mean accuracy at 188 / 3.4 MB/day; scrubbing needs
+  889 / 202 MB/day to match. Aegis does NOT save energy: monitor hook compute makes it ~125-144
+  mJ/day vs ~6-28 mJ/day for 12 h scrubbing. Claim is bandwidth, not energy. 3 seeds and 150 eval
+  chips give wide intervals; MobileNetV2 seed 2 had no damaging fault. `results/main_gpu/` is
+  pre-fix; don't cite. Frontend data exported for both final campaigns.
+- Fixed 2026-10-22: `preprocess_chips` built mean/std on CPU, crashing GPU MobileNetV2 training.
 - Known limitations: Ranger/BLINK per-inference compute is not charged; the ResNet-18 checkpoint's
   training split is unknown, so its clean accuracy may be optimistic (relative degradation is
   unaffected; the MobileNetV2 path has a verified held-out split).

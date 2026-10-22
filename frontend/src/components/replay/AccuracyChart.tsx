@@ -31,12 +31,12 @@ export default function AccuracyChart({ campaign, seed, minutes, hidden, onSeek 
   // Step k's accuracy is measured at the END of the hour, so it holds over [k*dt, (k+1)*dt)
   const tAt = (i: number) => i * step_minutes;
 
+  // Aegis-v2 drawn last so it sits on top of the baselines
   const series = useMemo(
     () =>
-      campaign.strategies.map((s) => ({
-        s,
-        data: accuracySeries(campaign, s.attr, seed),
-      })),
+      [...campaign.strategies]
+        .sort((a, b) => Number(a.attr === "acc_aegis") - Number(b.attr === "acc_aegis"))
+        .map((s) => ({ s, data: accuracySeries(campaign, s.attr, seed) })),
     [campaign, seed],
   );
   const ref = seed === "mean" ? campaign.seeds[seedKeys(campaign)[0]] : campaign.seeds[seed];
@@ -129,7 +129,7 @@ export default function AccuracyChart({ campaign, seed, minutes, hidden, onSeek 
                 d={lineGen(extend(data)) ?? ""}
                 fill="none"
                 stroke={`var(--s-${s.attr})`}
-                strokeWidth={s.attr === "acc_aegis" ? 2.6 : 1.8}
+                strokeWidth={s.attr === "acc_aegis" ? 2.6 : 1.5}
                 strokeLinejoin="round"
                 opacity={hover === null ? 1 : 0.9}
               />
