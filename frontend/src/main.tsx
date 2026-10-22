@@ -6,6 +6,7 @@ import "@fontsource/instrument-serif/400.css";
 import "@fontsource/instrument-serif/400-italic.css";
 import "./styles/tokens.css";
 import "./styles/app.css";
+import "./styles/sections.css";
 import App from "./App";
 
 // Apply the saved theme before first paint (falls back to dark)

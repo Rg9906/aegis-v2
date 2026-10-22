@@ -1,0 +1,379 @@
+% References for "Aegis-v2" (researchpaper/aegis_v2_paper.tex).
+%
+% Entries marked "VERIFY" are recent (2026) preprints or proceedings taken from the project's prior-art map
+% (Project Aegis_ Prior-Art Map ... .md). Their identifiers and titles are as listed there; authors and venues
+% were not independently verified and are omitted rather than guessed. Check each one before submission.
+
+% ---------------- Radiation effects and space environment ----------------
+
+@article{baumann2005soft,
+  author  = {Baumann, Robert C.},
+  title   = {Radiation-Induced Soft Errors in Advanced Semiconductor Technologies},
+  journal = {IEEE Transactions on Device and Materials Reliability},
+  volume  = {5},
+  number  = {3},
+  pages   = {305--316},
+  year    = {2005}
+}
+
+@book{petersen2011see,
+  author    = {Petersen, Edward},
+  title     = {Single Event Effects in Aerospace},
+  publisher = {Wiley-IEEE Press},
+  year      = {2011}
+}
+
+@article{heirtzler2002saa,
+  author  = {Heirtzler, J. R.},
+  title   = {The Future of the {South Atlantic} Anomaly and Implications for Radiation Damage in Space},
+  journal = {Journal of Atmospheric and Solar-Terrestrial Physics},
+  volume  = {64},
+  number  = {16},
+  pages   = {1701--1708},
+  year    = {2002}
+}
+
+@article{alken2021igrf,
+  author  = {Alken, P. and Th{\'e}bault, E. and Beggan, C. D. and others},
+  title   = {International Geomagnetic Reference Field: the Thirteenth Generation},
+  journal = {Earth, Planets and Space},
+  volume  = {73},
+  pages   = {49},
+  year    = {2021}
+}
+
+@inproceedings{vallado2006sgp4,
+  author    = {Vallado, David A. and Crawford, Paul and Hujsak, Richard and Kelso, T. S.},
+  title     = {Revisiting Spacetrack Report \#3},
+  booktitle = {AIAA/AAS Astrodynamics Specialist Conference},
+  note      = {AIAA 2006-6753},
+  year      = {2006}
+}
+
+@article{bentoutou2011edac,
+  author  = {Bentoutou, Y.},
+  title   = {Performance Comparison of Real Time {EDAC} Systems for Applications On-Board Small Satellites},
+  journal = {International Journal of Electrical and Computer Engineering},
+  volume  = {5},
+  number  = {5},
+  year    = {2011},
+  note    = {{Alsat-1} {SRAM} upset statistics, Nov.~2002--Aug.~2010}
+}
+
+@misc{celestrak,
+  author       = {{CelesTrak}},
+  title        = {{NORAD} Two-Line Element Sets: {Sentinel-2A} ({NORAD} 40697)},
+  howpublished = {\url{https://celestrak.org}},
+  note         = {Accessed Oct.~2026}
+}
+
+@misc{ieee754,
+  author       = {{IEEE}},
+  title        = {{IEEE} Standard for Floating-Point Arithmetic},
+  howpublished = {IEEE Std 754-2019},
+  year         = {2019}
+}
+
+% ---------------- Onboard AI and Earth observation ----------------
+
+@article{furano2020edge,
+  author  = {Furano, Gianluca and Meoni, Gabriele and Dunne, Aubrey and Moloney, David and Ferlet-Cavrois, Veronique and Tavoularis, Antonis and Byrne, Jonathan and Buckley, L{\'e}onie and Psarakis, Mihalis and Voss, Kay-Obbe and Fanucci, Luca},
+  title   = {Towards the Use of Artificial Intelligence on the Edge in Space Systems: Challenges and Opportunities},
+  journal = {IEEE Aerospace and Electronic Systems Magazine},
+  volume  = {35},
+  number  = {12},
+  pages   = {44--56},
+  year    = {2020}
+}
+
+@article{giuffrida2022phisat,
+  author  = {Giuffrida, Gianluca and Fanucci, Luca and Meoni, Gabriele and others},
+  title   = {The $\Phi$-{Sat}-1 Mission: The First On-Board Deep Neural Network Demonstrator for Satellite Earth Observation},
+  journal = {IEEE Transactions on Geoscience and Remote Sensing},
+  volume  = {60},
+  year    = {2022}
+}
+
+@misc{opssat,
+  author       = {{European Space Agency}},
+  title        = {{OPS-SAT}},
+  howpublished = {\url{https://esoc.esa.int/content/ops-sat}},
+  note         = {Accessed Oct.~2026}
+}
+
+@article{drusch2012sentinel2,
+  author  = {Drusch, M. and Del Bello, U. and Carlier, S. and others},
+  title   = {{Sentinel-2}: {ESA}'s Optical High-Resolution Mission for {GMES} Operational Services},
+  journal = {Remote Sensing of Environment},
+  volume  = {120},
+  pages   = {25--36},
+  year    = {2012}
+}
+
+@article{helber2019eurosat,
+  author  = {Helber, Patrick and Bischke, Benjamin and Dengel, Andreas and Borth, Damian},
+  title   = {{EuroSAT}: A Novel Dataset and Deep Learning Benchmark for Land Use and Land Cover Classification},
+  journal = {IEEE Journal of Selected Topics in Applied Earth Observations and Remote Sensing},
+  volume  = {12},
+  number  = {7},
+  pages   = {2217--2226},
+  year    = {2019}
+}
+
+@misc{lange2024mlspace,
+  author       = {Lange, Kevin and others},
+  title        = {Machine Learning in Space: Surveying the Robustness of On-Board {ML} Models to Radiation},
+  howpublished = {arXiv:2405.02642 (IEEE Space Computing Conference)},
+  year         = {2024}
+}
+
+@misc{rednet2024,
+  title        = {A Case for Application-Aware Space Radiation Tolerance in Orbital Computing},
+  howpublished = {arXiv:2407.11853},
+  year         = {2024},
+  note         = {{RedNet}; validated on the {Chaohu-1} {SAR} satellite payload}
+}
+
+% VERIFY
+@misc{zedac2026,
+  title        = {Radiation-Resilient {AI} for Small Satellites: A Universal Multi-Bit {EDAC} Architecture for Protecting On-Board Neural Network Models in Memory and Storage},
+  howpublished = {Small Satellite Conference},
+  year         = {2026}
+}
+
+% ---------------- Models and training ----------------
+
+@inproceedings{he2016resnet,
+  author    = {He, Kaiming and Zhang, Xiangyu and Ren, Shaoqing and Sun, Jian},
+  title     = {Deep Residual Learning for Image Recognition},
+  booktitle = {Proc. IEEE Conf. Computer Vision and Pattern Recognition (CVPR)},
+  pages     = {770--778},
+  year      = {2016}
+}
+
+@inproceedings{sandler2018mobilenetv2,
+  author    = {Sandler, Mark and Howard, Andrew and Zhu, Menglong and Zhmoginov, Andrey and Chen, Liang-Chieh},
+  title     = {{MobileNetV2}: Inverted Residuals and Linear Bottlenecks},
+  booktitle = {Proc. IEEE Conf. Computer Vision and Pattern Recognition (CVPR)},
+  pages     = {4510--4520},
+  year      = {2018}
+}
+
+@inproceedings{ioffe2015bn,
+  author    = {Ioffe, Sergey and Szegedy, Christian},
+  title     = {Batch Normalization: Accelerating Deep Network Training by Reducing Internal Covariate Shift},
+  booktitle = {Proc. Int. Conf. Machine Learning (ICML)},
+  pages     = {448--456},
+  year      = {2015}
+}
+
+@inproceedings{deng2009imagenet,
+  author    = {Deng, Jia and Dong, Wei and Socher, Richard and Li, Li-Jia and Li, Kai and Fei-Fei, Li},
+  title     = {{ImageNet}: A Large-Scale Hierarchical Image Database},
+  booktitle = {Proc. IEEE Conf. Computer Vision and Pattern Recognition (CVPR)},
+  pages     = {248--255},
+  year      = {2009}
+}
+
+@inproceedings{loshchilov2019adamw,
+  author    = {Loshchilov, Ilya and Hutter, Frank},
+  title     = {Decoupled Weight Decay Regularization},
+  booktitle = {Proc. Int. Conf. Learning Representations (ICLR)},
+  year      = {2019}
+}
+
+@inproceedings{smith2019superconvergence,
+  author    = {Smith, Leslie N. and Topin, Nicholay},
+  title     = {Super-Convergence: Very Fast Training of Neural Networks Using Large Learning Rates},
+  booktitle = {Artificial Intelligence and Machine Learning for Multi-Domain Operations Applications, Proc. SPIE},
+  volume    = {11006},
+  year      = {2019}
+}
+
+@misc{shomron2020bnrecal,
+  author       = {Shomron, Gil and Weiser, Uri},
+  title        = {Post-Training {BatchNorm} Recalibration},
+  howpublished = {arXiv:2010.05625},
+  year         = {2020}
+}
+
+% ---------------- DNN fault tolerance ----------------
+
+@article{huang1984abft,
+  author  = {Huang, Kuang-Hua and Abraham, Jacob A.},
+  title   = {Algorithm-Based Fault Tolerance for Matrix Operations},
+  journal = {IEEE Transactions on Computers},
+  volume  = {C-33},
+  number  = {6},
+  pages   = {518--528},
+  year    = {1984}
+}
+
+@article{peterson1961crc,
+  author  = {Peterson, W. W. and Brown, D. T.},
+  title   = {Cyclic Codes for Error Detection},
+  journal = {Proceedings of the IRE},
+  volume  = {49},
+  number  = {1},
+  pages   = {228--235},
+  year    = {1961}
+}
+
+@misc{rfc8878,
+  author       = {Collet, Yann and Kucherawy, Murray},
+  title        = {Zstandard Compression and the 'application/zstd' Media Type},
+  howpublished = {RFC 8878},
+  year         = {2021}
+}
+
+@inproceedings{chen2021ranger,
+  author    = {Chen, Zitao and Li, Guanpeng and Pattabiraman, Karthik},
+  title     = {A Low-Cost Fault Corrector for Deep Neural Networks through Range Restriction},
+  booktitle = {Proc. IEEE/IFIP Int. Conf. Dependable Systems and Networks (DSN)},
+  year      = {2021}
+}
+
+@inproceedings{hoang2020ftclipact,
+  author    = {Hoang, Le-Ha and Hanif, Muhammad Abdullah and Shafique, Muhammad},
+  title     = {{FT-ClipAct}: Resilience Analysis of Deep Neural Networks and Improving their Fault Tolerance using Clipped Activation},
+  booktitle = {Proc. Design, Automation and Test in Europe (DATE)},
+  year      = {2020}
+}
+
+@misc{proact2024,
+  title        = {{ProAct}: Progressive Training for Hybrid Clipped Activation Function to Enhance Resilience of {DNNs}},
+  howpublished = {arXiv:2406.06313},
+  year         = {2024}
+}
+
+@inproceedings{li2021radar,
+  author    = {Li, Jingtao and Rakin, Adnan Siraj and He, Zhezhi and Fan, Deliang and Chakrabarti, Chaitali},
+  title     = {{RADAR}: Run-time Adversarial Weight Attack Detection and Accuracy Recovery},
+  booktitle = {Proc. Design, Automation and Test in Europe (DATE)},
+  year      = {2021}
+}
+
+@inproceedings{li2020reconstruction,
+  author    = {Li, Jingtao and Rakin, Adnan Siraj and Xiong, Yan and Chang, Liangliang and He, Zhezhi and Fan, Deliang and Chakrabarti, Chaitali},
+  title     = {Defending Bit-Flip Attack through {DNN} Weight Reconstruction},
+  booktitle = {Proc. ACM/IEEE Design Automation Conference (DAC)},
+  year      = {2020}
+}
+
+@inproceedings{ponader2021milr,
+  author    = {Ponader, Jonathan and Kundu, Sandip and Solihin, Yan},
+  title     = {{MILR}: Mathematically Induced Layer Recovery for Plaintext Space Error Correction of {CNNs}},
+  booktitle = {Proc. IEEE/IFIP Int. Conf. Dependable Systems and Networks (DSN)},
+  year      = {2021}
+}
+
+@inproceedings{rakin2019bfa,
+  author    = {Rakin, Adnan Siraj and He, Zhezhi and Fan, Deliang},
+  title     = {Bit-Flip Attack: Crushing Neural Network with Progressive Bit Search},
+  booktitle = {Proc. IEEE/CVF Int. Conf. Computer Vision (ICCV)},
+  year      = {2019}
+}
+
+@article{dossantos2023neutron,
+  author  = {Fernandes dos Santos, Fernando and others},
+  title   = {Characterizing a Neutron-Induced Fault Model for Deep Neural Networks},
+  journal = {IEEE Transactions on Nuclear Science},
+  volume  = {70},
+  number  = {4},
+  year    = {2023},
+  note    = {doi:10.1109/TNS.2022.3224538}
+}
+
+@inproceedings{mahmoud2020pytorchfi,
+  author    = {Mahmoud, Abdulrahman and Aggarwal, Neeraj and Nobbe, Alex and Vicarte, Jose Rodrigo Sanchez and Adve, Sarita V. and Fletcher, Christopher W. and Frosio, Iuri and Hari, Siva Kumar Sastry},
+  title     = {{PyTorchFI}: A Runtime Perturbation Tool for {DNNs}},
+  booktitle = {Proc. IEEE/IFIP Int. Conf. Dependable Systems and Networks Workshops (DSN-W)},
+  year      = {2020}
+}
+
+@inproceedings{reagen2018ares,
+  author    = {Reagen, Brandon and Gupta, Udit and Pentecost, Lillian and Whatmough, Paul and Lee, Sae Kyu and Mulholland, Niamh and Brooks, David and Wei, Gu-Yeon},
+  title     = {Ares: A Framework for Quantifying the Resilience of Deep Neural Networks},
+  booktitle = {Proc. ACM/IEEE Design Automation Conference (DAC)},
+  year      = {2018}
+}
+
+% VERIFY
+@misc{blink2026,
+  title        = {{BLINK}: Batch Normalization-based Integrity Checkpoints for In-Situ Detection and Mitigation of Diverse Weight Corruptions in {DNN} Accelerators},
+  howpublished = {arXiv:2609.06781},
+  year         = {2026}
+}
+
+% VERIFY
+@misc{cog2026,
+  title        = {{CoG}-Guided Weight Correction for Fault-Tolerant Deep Neural Networks},
+  howpublished = {arXiv:2607.15753},
+  year         = {2026}
+}
+
+% VERIFY
+@misc{shnn2026,
+  title        = {Self-Healing Neural Networks via Modular Patch Layers for Diverse Structural and Adversarial Damages},
+  howpublished = {Scientific Reports, doi:10.1038/s41598-026-57677-x},
+  year         = {2026}
+}
+
+% VERIFY
+@misc{sentry2026,
+  title        = {{SENTRY}: Statistical Reliability Analysis of Vision Transformers Under Soft Errors},
+  howpublished = {arXiv:2606.07620},
+  year         = {2026}
+}
+
+% VERIFY
+@misc{safeneureka2026,
+  title        = {{Safe-NEureka}: A Hybrid Modular Redundant {DNN} Accelerator for On-board Satellite {AI} Processing},
+  howpublished = {arXiv:2602.04803},
+  year         = {2026}
+}
+
+% VERIFY
+@misc{eccdnn2025,
+  title        = {An {ECC}-based Fault Tolerance Approach for {DNNs}},
+  howpublished = {arXiv:2508.12347},
+  year         = {2025}
+}
+
+% VERIFY
+@misc{weightsentry2025,
+  title        = {{WeightSentry}: Real-Time Bit-Flip Protection for Deep Neural Networks on {GPUs}},
+  howpublished = {ACM, doi:10.1145/3768725.3768734},
+  year         = {2025}
+}
+
+% VERIFY
+@misc{aispace2026,
+  title        = {{AI} Infrastructure in Space: How Far Can We Go?},
+  howpublished = {arXiv:2608.21034},
+  year         = {2026}
+}
+
+@misc{uspatent12634320,
+  title        = {System and Method for Providing Advanced Neuron-Level Vulnerability Analysis in Neural Network-Based Models},
+  howpublished = {U.S. Patent 12,634,320},
+  note         = {Describes replacing corrupted layers with backup copies}
+}
+
+% ---------------- Plasticity ----------------
+
+@inproceedings{sokar2023redo,
+  author    = {Sokar, Ghada and Agarwal, Rishabh and Castro, Pablo Samuel and Evci, Utku},
+  title     = {The Dormant Neuron Phenomenon in Deep Reinforcement Learning},
+  booktitle = {Proc. Int. Conf. Machine Learning (ICML)},
+  year      = {2023}
+}
+
+@article{dohare2024plasticity,
+  author  = {Dohare, Shibhansh and Hernandez-Garcia, J. Fernando and Lan, Qingfeng and Rahman, Parash and Mahmood, A. Rupam and Sutton, Richard S.},
+  title   = {Loss of Plasticity in Deep Continual Learning},
+  journal = {Nature},
+  volume  = {632},
+  pages   = {768--774},
+  year    = {2024}
+}

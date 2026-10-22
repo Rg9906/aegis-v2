@@ -102,7 +102,7 @@ export default function Incidents({ preFix }: { preFix: boolean }) {
   return (
     <section className="section" id="incidents">
       <SectionHead
-        index="05"
+        index="08"
         kicker="Incident files"
         title={<>What broke, and what we <em>changed</em>.</>}
         lede={

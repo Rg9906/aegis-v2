@@ -32,6 +32,12 @@ Design rationale: `AEGIS_RESEARCH_STUDY_AND_PROTOTYPE_BLUEPRINT.md`; prior-art m
   replays each seed's fault stream and checks it against recorded flip counts), then in `frontend/`:
   `npm install`, `npm run dev` (http://localhost:5173) or `npm run build` (static site in `dist/`).
   Campaigns without the audit strategy are shown as "pre-fix" (INC-01/02) automatically.
+  Sections: hero/globe, animated pipeline, IEEE-754 bit-flip anatomy (real recorded hits), replay, Pareto,
+  costs (bandwidth vs energy, honest), scoreboard, two-architecture comparison (needs both `main_final*` exports),
+  incidents, method. New-section styles live in `frontend/src/styles/sections.css`.
+- Paper: `researchpaper/` (IEEEtran two-column). `python researchpaper/make_paper_figures.py` regenerates
+  `figures/*.pdf`; build with `pdflatex -> bibtex -> pdflatex x2` in `researchpaper/`. Entries marked `% VERIFY` in
+  `references.bib` are unverified 2026 preprints from the prior-art map. Paper numbers come from the final campaigns.
 
 ## Layout
 `aegis/fault_engine` (IEEE-754 flips, LEO/SAA flux model, injector) · `aegis/monitor` (T1 activation

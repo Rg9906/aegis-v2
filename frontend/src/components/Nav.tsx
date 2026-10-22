@@ -2,9 +2,12 @@ import { useEffect, useState } from "react";
 
 const LINKS = [
   ["how", "How it works"],
+  ["anatomy", "Anatomy"],
   ["replay", "Replay"],
   ["tradeoff", "Trade-off"],
+  ["costs", "Costs"],
   ["scoreboard", "Scoreboard"],
+  ["models", "Models"],
   ["incidents", "Incidents"],
   ["method", "Method"],
 ] as const;

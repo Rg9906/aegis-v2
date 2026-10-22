@@ -56,7 +56,7 @@ export default function Replay({ campaign, theme }: { campaign: Campaign; theme:
   return (
     <section className="section" id="replay">
       <SectionHead
-        index="02"
+        index="03"
         kicker="Mission replay"
         title={<>Watch radiation <em>strike</em>, and the model recover.</>}
         lede="Every bit flip below is the exact one the campaign injected, replayed from its seed. The satellite flies the real Sentinel-2A track; the shaded region is where Earth's magnetic field is weakest and the radiation strongest."

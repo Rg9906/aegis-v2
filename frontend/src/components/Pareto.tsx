@@ -70,7 +70,7 @@ export default function Pareto({ campaign }: { campaign: Campaign }) {
   return (
     <section className="section" id="tradeoff">
       <SectionHead
-        index="03"
+        index="04"
         kicker="The trade-off"
         title={<>Same accuracy, a <em>fraction</em> of the traffic.</>}
         lede="Periodic scrubbing buys accuracy by reloading the whole model on a timer; the only knob is how often. Each orange point is one interval. A strategy above and left of that curve gets more accuracy per megabyte moved."

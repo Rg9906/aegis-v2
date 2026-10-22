@@ -52,3 +52,6 @@ results/smoke/
 # Frontend build artifacts
 frontend/node_modules/
 frontend/dist/
+
+# The frontend has its own lib/ (TypeScript sources); do not ignore it
+!frontend/src/lib/

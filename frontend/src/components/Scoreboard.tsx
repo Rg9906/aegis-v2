@@ -1,18 +1,8 @@
 import { useMemo, useState } from "react";
-import type { Campaign, StatRow, StrategyAttr } from "../lib/types";
+import type { Campaign, StatRow } from "../lib/types";
 import { mb, pct, pts } from "../lib/format";
+import { ATTR_OF_KEY } from "../lib/data";
 import SectionHead from "./SectionHead";
-
-const ATTR_OF_KEY: Record<string, StrategyAttr> = {
-  aegis_v2: "acc_aegis",
-  aegis_audit: "acc_aegis_audit",
-  ranger_aegis: "acc_ranger_aegis",
-  periodic_scrubbing: "acc_periodic_scrub",
-  ground_uplink: "acc_uplink",
-  ranger_clipping: "acc_ranger",
-  blink_recentering: "acc_blink",
-  unmitigated: "acc_unmitigated",
-};
 
 type SortKey = "mean" | "mb_per_day" | "energy_mj_day";
 
@@ -58,7 +48,7 @@ export default function Scoreboard({ campaign }: { campaign: Campaign }) {
   return (
     <section className="section" id="scoreboard">
       <SectionHead
-        index="04"
+        index="06"
         kicker="Scoreboard"
         title={<>Every strategy, with its <em>uncertainty</em>.</>}
         lede={`Dot = mean over ${campaign.stats.seeds} radiation seeds, bar = 95% Student-t interval, hollow dots = individual seeds. The difference column is paired: every strategy saw the identical fault stream within a seed.`}

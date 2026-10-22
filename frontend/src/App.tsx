@@ -10,6 +10,10 @@ import Pareto from "./components/Pareto";
 import Scoreboard from "./components/Scoreboard";
 import Incidents from "./components/Incidents";
 import Method from "./components/Method";
+import Anatomy from "./components/Anatomy";
+import Costs from "./components/Costs";
+import Architectures from "./components/Architectures";
+import ScrollProgress from "./components/ScrollProgress";
 
 /** Prefer the newest "final" campaign, then any GPU run, then whatever exists. */
 function pickDefault(names: string[]) {
@@ -69,13 +73,17 @@ export default function App() {
   return (
     <>
       <div className="grain" aria-hidden="true" />
+      <ScrollProgress />
       <Nav campaigns={campaigns} current={current} onCampaign={setCurrent} theme={theme} onTheme={setTheme} />
       <main>
         <Hero campaign={campaign} theme={theme} />
         <HowItWorks />
+        <Anatomy key={`anatomy-${current}`} campaign={campaign} />
         <Replay key={current} campaign={campaign} theme={theme} />
         <Pareto campaign={campaign} />
+        <Costs campaign={campaign} />
         <Scoreboard campaign={campaign} />
+        <Architectures campaigns={campaigns} />
         <Incidents preFix={isPreFix(campaign)} />
         <Method campaign={campaign} />
       </main>

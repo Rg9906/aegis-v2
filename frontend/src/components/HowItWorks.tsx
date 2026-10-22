@@ -1,5 +1,6 @@
 import { motion } from "motion/react";
 import SectionHead from "./SectionHead";
+import Pipeline from "./Pipeline";
 
 const STAGES = [
   {
@@ -31,6 +32,7 @@ export default function HowItWorks() {
         title={<>Sense. Confirm. <em>Restore only what broke.</em></>}
         lede="Scrubbing reloads the entire model on a timer whether or not anything is wrong. Aegis-v2 reloads nothing until damage is both observed and proven, and then reloads only the damaged layers."
       />
+      <Pipeline />
       <div className="stages">
         {STAGES.map((s, i) => (
           <motion.div

@@ -65,7 +65,7 @@ export default function Method({ campaign }: { campaign: Campaign }) {
   return (
     <section className="section" id="method">
       <SectionHead
-        index="06"
+        index="09"
         kicker="Method & assumptions"
         title={<>What is <em>measured</em>, and what is assumed.</>}
         lede="Every number on this page comes from a seeded, reproducible campaign. Two independent GPU runs of the first campaign gave bit-identical results for every seed."
