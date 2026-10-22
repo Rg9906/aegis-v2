@@ -43,8 +43,8 @@ class EuroSATSplits:
 def preprocess_chips(chips_uint8: torch.Tensor, input_size: int = MODEL_INPUT_SIZE) -> torch.Tensor:
     """Converts [N, 3, 64, 64] uint8 chips to normalized [N, 3, input_size, input_size] float32."""
     x = chips_uint8.float() / 255.0
-    mean = torch.tensor(EUROSAT_NORM_MEAN).view(1, 3, 1, 1)
-    std = torch.tensor(EUROSAT_NORM_STD).view(1, 3, 1, 1)
+    mean = torch.tensor(EUROSAT_NORM_MEAN, device=x.device).view(1, 3, 1, 1)
+    std = torch.tensor(EUROSAT_NORM_STD, device=x.device).view(1, 3, 1, 1)
     x = (x - mean) / std
     if x.shape[-1] != input_size:
         x = F.interpolate(x, size=input_size, mode="bicubic", align_corners=False)
