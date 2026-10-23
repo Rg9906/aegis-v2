@@ -125,4 +125,7 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+    from aegis.runtime import configure_torch_threads
+
+    configure_torch_threads()
     main()

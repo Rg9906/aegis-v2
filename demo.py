@@ -170,4 +170,7 @@ def run_demonstration():
 
 
 if __name__ == "__main__":
+    from aegis.runtime import configure_torch_threads
+
+    configure_torch_threads()
     run_demonstration()
