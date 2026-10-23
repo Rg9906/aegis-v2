@@ -86,32 +86,15 @@ def replay_faults(seed: int, steps: int, step_minutes: float, arch: str, orbit: 
 
 
 def ground_track(days: float, step_minutes: float = 5.0):
-    from aegis.fault_engine.orbit_model import DEFAULT_TLE_PATH, ground_track as track, load_tle
+    from aegis.fault_engine.orbit_model import track_payload
 
-    sat = load_tle(DEFAULT_TLE_PATH)
-    minutes = np.arange(0.0, days * 1440.0 + step_minutes, step_minutes)
-    lat, lon, alt = track(sat, minutes)
-    return {"minutes": minutes.round(1).tolist(), "lat": lat.round(2).tolist(), "lon": lon.round(2).tolist(),
-            "alt_km": round(float(np.mean(alt)), 1),
-            "period_min": round(float(2 * np.pi / sat.no_kozai), 2)}
+    return track_payload(days * 1440.0, step_minutes)
 
 
 def field_grid(alt_km: float, step_deg: float = 3.0):
-    """Total field |B| (nT) on a lon/lat grid at orbit altitude (IGRF), for the SAA contour."""
-    import ppigrf
+    from aegis.fault_engine.orbit_model import field_grid as grid
 
-    from aegis.fault_engine.orbit_model import DEFAULT_TLE_PATH, load_tle
-
-    sat = load_tle(DEFAULT_TLE_PATH)
-    epoch = datetime.datetime(2000, 1, 1, 12) + datetime.timedelta(
-        days=sat.jdsatepoch + sat.jdsatepochF - 2451545.0)
-    lons = np.arange(-180.0, 180.0 + step_deg, step_deg)
-    lats = np.arange(-84.0, 84.0 + step_deg, step_deg)
-    lon_g, lat_g = np.meshgrid(lons, lats)
-    be, bn, bu = ppigrf.igrf(lon_g.ravel(), lat_g.ravel(), np.full(lon_g.size, alt_km), epoch)
-    b = np.sqrt(be ** 2 + bn ** 2 + bu ** 2).reshape(lat_g.shape)
-    return {"lons": lons.tolist(), "lats": lats.tolist(), "b_nt": b.round(0).astype(int).tolist(),
-            "edge_nt": 20000, "core_nt": 18000}
+    return grid(alt_km, step_deg)
 
 
 def stats(runs):

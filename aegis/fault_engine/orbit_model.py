@@ -57,6 +57,35 @@ def ground_track(sat: Satrec, minutes: np.ndarray):
     return lat, lon, radius - EARTH_RADIUS_KM
 
 
+def tle_epoch(sat: Satrec) -> datetime.datetime:
+    """UTC epoch of a TLE (used as the IGRF evaluation date)."""
+    return datetime.datetime(2000, 1, 1, 12) + datetime.timedelta(
+        days=sat.jdsatepoch + sat.jdsatepochF - 2451545.0)
+
+
+def track_payload(total_minutes: float, step_minutes: float = 5.0, start_minutes: float = 0.0,
+                  tle_path: str = DEFAULT_TLE_PATH) -> dict:
+    """Ground track sampled every `step_minutes` over [start, start + total], as plain JSON lists."""
+    sat = load_tle(tle_path)
+    minutes = np.arange(start_minutes, start_minutes + total_minutes + step_minutes, step_minutes)
+    lat, lon, alt = ground_track(sat, minutes)
+    return {"minutes": (minutes - start_minutes).round(1).tolist(), "lat": lat.round(2).tolist(),
+            "lon": lon.round(2).tolist(), "alt_km": round(float(np.mean(alt)), 1),
+            "period_min": round(float(2 * np.pi / sat.no_kozai), 2)}
+
+
+def field_grid(alt_km: float, step_deg: float = 3.0, tle_path: str = DEFAULT_TLE_PATH) -> dict:
+    """Total field |B| (nT) on a lon/lat grid at orbit altitude (IGRF), for the SAA contour."""
+    epoch = tle_epoch(load_tle(tle_path))
+    lons = np.arange(-180.0, 180.0 + step_deg, step_deg)
+    lats = np.arange(-84.0, 84.0 + step_deg, step_deg)
+    lon_g, lat_g = np.meshgrid(lons, lats)
+    be, bn, bu = ppigrf.igrf(lon_g.ravel(), lat_g.ravel(), np.full(lon_g.size, alt_km), epoch)
+    b = np.sqrt(be ** 2 + bn ** 2 + bu ** 2).reshape(lat_g.shape)
+    return {"lons": lons.tolist(), "lats": lats.tolist(), "b_nt": b.round(0).astype(int).tolist(),
+            "edge_nt": 20000, "core_nt": 18000}
+
+
 class OrbitTrackRadiationEnvironment:
     """Drop-in replacement for LEORadiationEnvironment driven by a real TLE and the IGRF field."""
 
@@ -74,9 +103,7 @@ class OrbitTrackRadiationEnvironment:
         self.b_edge_nt = b_edge_nt
         self.b_core_nt = b_core_nt
         self.orbit_period_minutes = 2 * np.pi / self.sat.no_kozai  # no_kozai is rad/min
-        epoch = datetime.datetime(2000, 1, 1, 12) + datetime.timedelta(
-            days=self.sat.jdsatepoch + self.sat.jdsatepochF - 2451545.0)
-        self.epoch = epoch
+        self.epoch = tle_epoch(self.sat)
         self.elapsed_minutes: float = 0.0
         self.cumulative_sbus: int = 0
         self.cumulative_mbus: int = 0
@@ -112,6 +139,13 @@ class OrbitTrackRadiationEnvironment:
         first, last = int(np.floor(start_minutes)), int(np.ceil(end_minutes))
         self._ensure_propagated(last)
         return float(self._weights[first:last].sum())
+
+    def minute_rates(self, start_minutes: float, end_minutes: float) -> np.ndarray:
+        """Upset rate (per bit per day) of each propagated minute in [start, end)."""
+        first, last = int(np.floor(start_minutes)), int(np.ceil(end_minutes))
+        self._ensure_propagated(last)
+        w = self._weights[first:last]
+        return self.config.saa_peak_rate_per_bit_day * w + self.config.background_rate_per_bit_day * (1.0 - w)
 
     def is_inside_saa(self, current_minutes: float) -> bool:
         self._ensure_propagated(int(current_minutes))

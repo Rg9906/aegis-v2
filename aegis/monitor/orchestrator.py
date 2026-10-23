@@ -29,6 +29,8 @@ class HealthReport:
     tier1_violations: Dict[str, Dict[str, object]] = field(default_factory=dict)
     tier2_drifts: Dict[str, Dict[str, float]] = field(default_factory=dict)
     tier3_corrupted_blocks: List[str] = field(default_factory=list)
+    # Blocks T1/T2 implicated (plus the upstream block) before T3 confirmation, forward order
+    candidate_blocks: List[str] = field(default_factory=list)
 
     @property
     def has_catastrophic_anomaly(self) -> bool:
@@ -60,6 +62,17 @@ class AegisHealthMonitor:
         """
         self.tier1_envelope.profile_clean_bounds(self.model, calibration_batch)
         self.tier2_bn_drift.calibrate_clean_reference(self.model, calibration_batch)
+        self.tier3_checksum.compute_golden_checksums()
+
+    def copy_calibration_from(self, other: "AegisHealthMonitor") -> None:
+        """
+        Reuses another monitor's T1 bounds and T2 tolerances instead of re-profiling, and takes
+        T3 references from this monitor's own model. Valid only when both models are clean
+        copies of the same weights (calibration is a deterministic function of the weights and
+        the calibration imagery), e.g. replicas deep-copied from a calibrated golden model.
+        """
+        self.tier1_envelope._bounds = dict(other.tier1_envelope._bounds)
+        self.tier2_bn_drift._calibrated_tolerances = dict(other.tier2_bn_drift._calibrated_tolerances)
         self.tier3_checksum.compute_golden_checksums()
 
     def attach(self) -> None:
@@ -155,6 +168,7 @@ class AegisHealthMonitor:
             tier1_violations=t1_violations,
             tier2_drifts=t2_drifts,
             tier3_corrupted_blocks=t3_corrupted,
+            candidate_blocks=sorted(candidate_blocks, key=lambda b: forward_order.get(b, len(forward_order))),
         )
 
     def clear(self) -> None:
