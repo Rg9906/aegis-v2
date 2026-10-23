@@ -1,7 +1,33 @@
-# Frontend: the Mission Dossier
+# Frontend: Briefing + Live Console
 
-`frontend/` is a static React 19 + TypeScript + Vite site that presents a campaign as a scrolling "mission dossier".
-It replaces the Streamlit dashboard for presentations. It has no backend: it reads pre-exported JSON.
+`frontend/` is one React 19 + TypeScript + Vite app with two modes, switched by the pill in the header
+(`src/Root.tsx`, hash routing):
+
+* **Briefing** (default, `#overview`): the scrolling "mission dossier" over recorded campaigns. No backend; it
+  reads pre-exported JSON (sections 1-6 below).
+* **Live console** (`#/console/lab`, `#/console/mission`, `#/console/inspect`): a control room driving the real
+  engine (`aegis/console/`) over REST + one WebSocket (section 7).
+
+The earlier Streamlit console was removed.
+
+## 0. Live console
+
+Start the engine from the repository root (venv active), then open the console:
+
+```powershell
+python -m aegis.console            # API + built UI on http://127.0.0.1:8765/#/console  (--open, --arch mobilenet_v2)
+cd frontend; npm run dev           # optional: UI dev server on :5173, proxies /api to :8765
+```
+
+| Workspace | What runs on the engine |
+|---|---|
+| Strike Lab | Flip chosen bits (block, IEEE-754 field, 1/4/16 bits) in the live payload; measure accuracy on a 30-chip probe; with the autopilot armed, one monitored batch -> T1/T2 suspects -> T3 CRC confirmation -> selective restore -> re-measure. Manual health check, Aegis repair, CRC audit, full scrub, reset. |
+| Live Mission | 4 replicas (unprotected, periodic scrub, Aegis-v2, Aegis+audit) fly the real Sentinel-2A track with the identical seeded fault stream; every step streams live (map, strategy lanes, accuracy chart, damaging-hit feed, debrief). Radiation 1x = Alsat-1 calibrated; 10x/30x are labelled accelerated. |
+| Inspector | Classify any of the 150 held-out chips with the live payload vs the golden model; per-class accuracy and confusion matrix on the probe or all chips. |
+
+The UI replays engine events as a sequence with a minimum dwell per stage (`lab/Lab.tsx`), so a fast engine still
+reads step by step; every number shown is computed by the engine. The flight log streams every engine action.
+Keys: `1/2/3` workspaces, `F` fire, `L` log.
 
 ## 1. Data pipeline
 
@@ -74,8 +100,3 @@ from a sub-folder. `dist/` and `node_modules/` are gitignored. Re-export data be
 | Exporter exits "Fault replay ... does not match recorded flip counts" | Campaign was produced by different code/orbit/arch; re-run the campaign or check out the matching commit |
 | Blank globe | Campaign used `--orbit periodic` (no ground track is exported) |
 | Type errors after changing the exporter | Update `src/lib/types.ts` to match the payload |
-
-## 7. Legacy Streamlit dashboard
-
-`streamlit run dashboard/app.py` reads the same `results/` folder directly (via `aegis/reporting.py`) and offers
-interactive campaign, seed and strategy selection; kept for quick exploration.

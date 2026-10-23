@@ -1287,3 +1287,87 @@ em {
     transition: none !important;
   }
 }
+
+/* ---------- Mode switch (Briefing <-> Live console), shared by both modes ---------- */
+.mode-switch {
+  display: inline-flex;
+  padding: 3px;
+  border-radius: 99px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  flex: none;
+}
+.mode-switch a {
+  position: relative;
+  padding: 6px 13px;
+  border-radius: 99px;
+  font-size: 12.5px;
+  text-decoration: none;
+  color: var(--ink-3);
+  transition: color 0.2s;
+  white-space: nowrap;
+}
+.mode-switch a:hover,
+.mode-switch a.on {
+  color: var(--ink);
+}
+.mode-pill {
+  position: absolute;
+  inset: 0;
+  border-radius: 99px;
+  background: var(--surface);
+  box-shadow: 0 0 0 1px var(--line-strong), 0 6px 18px -8px var(--accent-glow);
+}
+.mode-label {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.mode-live {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ink-4);
+}
+.mode-live.on {
+  background: var(--crit);
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--crit) 60%, transparent);
+  animation: live-pulse 1.6s infinite;
+}
+@keyframes live-pulse {
+  70% {
+    box-shadow: 0 0 0 7px transparent;
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+.btn-live {
+  gap: 10px;
+}
+.mode-warp {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 2px;
+  transform-origin: left;
+  background: linear-gradient(90deg, transparent, var(--accent), #fff, var(--accent), transparent);
+  box-shadow: 0 0 18px 2px var(--accent-glow);
+  pointer-events: none;
+  z-index: 100;
+}
+@media (max-width: 900px) {
+  .nav-tools .mode-switch a {
+    padding: 6px 10px;
+  }
+}
+.nav-links a {
+  white-space: nowrap;
+}
+@media (max-width: 1520px) {
+  .nav-links a {
+    padding: 6px 8px;
+  }
+}

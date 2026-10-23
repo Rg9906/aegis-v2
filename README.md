@@ -59,12 +59,13 @@ fault stream** and are compared on accuracy, bytes moved and energy.
 
 ## Quick start
 
-All commands run from the repository root. On the author's machine use the Python 3.12 that has the
-dependencies (`C:\Users\RG Saran Vishakan\AppData\Local\Microsoft\WindowsApps\python3.12.exe`); the default
-`python` on `PATH` is an unrelated venv without torch.
+All commands run from the repository root, inside the project venv (`.venv`, Python 3.12). On the
+author's machine the default `python` on `PATH` is an unrelated venv without torch, so activate `.venv` first.
 
 ```bash
-# 1. Install dependencies
+# 1. Create the venv and install dependencies
+python3.12 -m venv .venv
+.venv\Scripts\Activate.ps1                 # PowerShell; bash: source .venv/Scripts/activate
 pip install -r requirements.txt            # or: pip install -e ".[dev]"
 
 # 2. Get the dataset (gitignored). curl works; python `requests` fails SSL to HF on this machine.
@@ -83,7 +84,14 @@ HF_HUB_OFFLINE=1 python experiments/run_campaign.py --days 3 --seeds 0 1 2 --eva
     --scrub-sweep-hours 1 3 6 24 --name main
 python experiments/make_figures.py --name main
 python experiments/write_report.py --name main
+
+# 6. Presentation: build the UI once, then one command runs the live console + briefing
+cd frontend && npm install && npm run build && cd ..
+python -m aegis.console --open          # http://127.0.0.1:8765/#/console
 ```
+
+The live console drives the real model (strike bits, watch detection and repair, fly live missions, classify
+chips); see [docs/FRONTEND.md](docs/FRONTEND.md). Keep the laptop plugged in and ~1.5 GB of RAM free.
 
 The pretrained weights (`cm93/resnet18-eurosat`) are expected in the Hugging Face cache and load with
 `local_files_only`; set `HF_HUB_OFFLINE=1` for scripts.
@@ -116,7 +124,7 @@ Details: [docs/RESULTS.md](docs/RESULTS.md).
 |---|---|
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Package layout, data flow, every module and class, the per-step simulation protocol |
 | [docs/METHODOLOGY.md](docs/METHODOLOGY.md) | Fault model, orbit/radiation model, detectors, energy accounting, assumptions, validity invariants |
-| [docs/USER_GUIDE.md](docs/USER_GUIDE.md) | Setup, every CLI flag, workflows (campaign → figures → report → dashboard → frontend), Colab |
+| [docs/USER_GUIDE.md](docs/USER_GUIDE.md) | Setup, every CLI flag, workflows (campaign → figures → report → frontend), Colab |
 | [docs/RESULTS.md](docs/RESULTS.md) | Result artefacts, JSON schemas, how to read the report, current numbers and caveats |
 | [docs/TESTING.md](docs/TESTING.md) | Test suite map and what each regression test protects |
 | [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) | Extending Aegis (new baseline, architecture, monitor tier), pitfalls, known limitations, roadmap |
@@ -132,8 +140,8 @@ Details: [docs/RESULTS.md](docs/RESULTS.md).
 ```
 aegis/            core library (fault engine, monitors, repair, baselines, simulation, data, models)
 experiments/      CLI entry points: campaign, figures, report, frontend export, MobileNetV2 training, transient faults
-dashboard/        Streamlit mission console (legacy viewer)
-frontend/         React + Vite "mission dossier" presentation site
+aegis/console/    Live console engine: FastAPI + WebSocket over the real pipeline (`python -m aegis.console`)
+frontend/         React + Vite app: Briefing (recorded campaigns) + Live console (real engine)
 notebooks/        Colab notebook for GPU campaigns
 orbits/           sentinel2a.tle (CelesTrak) used by the SGP4 orbit model
 results/          campaign outputs (seed_*.json, campaign.json, report.md, figures/)

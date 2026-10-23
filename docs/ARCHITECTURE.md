@@ -9,7 +9,7 @@ data flows through one simulated mission step. For *why* the numbers are what th
 ```
 aegis/
 ├── config.py                  Physical + budget constants (dataclasses), EuroSAT class order, preprocessing constants
-├── reporting.py               Shared loaders/colours/Pareto helpers used by figures, dashboard, report
+├── reporting.py               Shared loaders/colours/Pareto helpers used by figures, report
 ├── data/eurosat.py            Real EuroSAT loading, disjoint calibration/evaluation splits, preprocessing
 ├── models/
 │   ├── eurosat_classifier.py  EuroSATResNet18 wrapper (HF checkpoint, predict/evaluate/clone_clean_state)
@@ -35,7 +35,7 @@ aegis/
     └── confusion_analyzer.py  EOConfusionAnalyzer: which EO classes get confused under faults
 ```
 
-Entry points live outside the package: `demo.py`, `experiments/*.py`, `dashboard/app.py`, `frontend/`.
+Entry points live outside the package: `demo.py`, `experiments/*.py`, `frontend/`.
 
 ## 2. Core abstractions
 
@@ -170,7 +170,6 @@ Design notes:
   `list_campaigns`, `load_seed_runs`, `pareto_points`, `strategies_present` (older campaigns lack newer strategies).
 * `experiments/make_figures.py` → `results/<name>/figures/`.
 * `experiments/write_report.py` → `results/<name>/report.md` (95 % Student-t seed intervals, paired deltas, Pareto verdict).
-* `dashboard/app.py` – Streamlit viewer over campaign JSON.
 * `experiments/export_frontend_data.py` → `frontend/public/data/`; it **replays each seed's fault stream** and checks it
   against the recorded flip counts before exporting. `frontend/` is a React 19 + Vite + TypeScript site (D3 geo/contour
   globe, replay timeline, memory map, Pareto chart). Campaigns without the audit strategy render as "pre-fix" (INC-01/02).
@@ -181,6 +180,6 @@ Design notes:
 config ─► data, models, fault_engine, monitor, repair, baselines
 models ─► monitor, repair, fault_engine
 monitor ─► repair, baselines (ground uplink)
-everything ─► simulation ─► experiments / demo / dashboard / frontend export
+everything ─► simulation ─► experiments / demo / frontend export
 ```
 `simulation` is the only layer that knows about every strategy; library modules do not import from `simulation`.

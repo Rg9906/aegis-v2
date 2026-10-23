@@ -7,7 +7,7 @@ import "@fontsource/instrument-serif/400-italic.css";
 import "./styles/tokens.css";
 import "./styles/app.css";
 import "./styles/sections.css";
-import App from "./App";
+import Root from "./Root";
 
 // Apply the saved theme before first paint (falls back to dark)
 try {
@@ -20,6 +20,6 @@ if (!document.documentElement.dataset.theme) document.documentElement.dataset.th
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <App />
+    <Root />
   </StrictMode>,
 );

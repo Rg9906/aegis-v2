@@ -28,7 +28,6 @@ is missing. Use `HF_HUB_OFFLINE=1` where weights are loaded.
 
 ## What is *not* tested
 * Frontend UI (only its data export); verify with `npm run typecheck` / `npm run build` in `frontend/`.
-* Streamlit dashboard rendering.
 * The Colab notebook.
 * Statistical power of campaign conclusions (3 seeds); that is a methodology limit, not a unit-test one.
 

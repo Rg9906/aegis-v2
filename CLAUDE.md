@@ -6,9 +6,10 @@ Design rationale: `AEGIS_RESEARCH_STUDY_AND_PROTOTYPE_BLUEPRINT.md`; prior-art m
 `Project Aegis_ Prior-Art Map ... .md` file.
 
 ## Environment
-- Use the Python 3.12 that has the deps:
-  `C:\Users\RG Saran Vishakan\AppData\Local\Microsoft\WindowsApps\python3.12.exe`.
-  The default `python` on PATH is an unrelated venv (no torch).
+- Use the project venv: `.venv\Scripts\python.exe` (Python 3.12, CPU torch 2.13.0 from the
+  PyTorch CPU index + `requirements.txt`; activate with `.venv\Scripts\Activate.ps1`).
+  The default `python` on PATH is an unrelated venv (hermes-agent, no torch). The Store
+  `python3.12.exe` also still has the deps installed globally.
 - Python `requests` fails SSL to huggingface.co on this machine; `curl` works. Weights
   (`cm93/resnet18-eurosat`) are in the HF cache and load with `local_files_only`; set
   `HF_HUB_OFFLINE=1` for scripts.
@@ -26,9 +27,18 @@ Design rationale: `AEGIS_RESEARCH_STUDY_AND_PROTOTYPE_BLUEPRINT.md`; prior-art m
 - Second architecture: `python experiments/train_mobilenet.py --epochs 3 --device cuda` (GPU; writes
   `checkpoints/`, gitignored), then `run_campaign.py ... --arch mobilenet_v2`
 - GPU runs: `notebooks/aegis_colab.ipynb` (repo `Rg9906/aegis-v2`, token in Colab secret `GH_TOKEN`)
-- Dashboard: `streamlit run dashboard/app.py`
-- Frontend (React mission dossier, replaces the Streamlit dashboard for presentation):
-  `python experiments/export_frontend_data.py --name <campaign>` (writes `frontend/public/data/`,
+- Frontend = one React app, two modes (`src/Root.tsx`, hash routing): **Briefing** (scrolling deck over
+  recorded campaigns, default) and **Live console** (`#/console/{lab,mission,inspect}`, `src/console/`,
+  styles in `src/styles/console.css`, lazy-loaded). The old Streamlit `dashboard/app.py` was removed 2026-10-23.
+- Live console engine: `python -m aegis.console` (FastAPI + WebSocket on :8765, `aegis/console/`; serves
+  `frontend/dist` too, so after `npm run build` the whole demo is http://127.0.0.1:8765/#/console). For UI dev
+  run it alongside `npm run dev` (Vite proxies `/api`). Boot ~15 s; strike+detect+repair ~5 s; live mission
+  ~3-4 s/step with 20 probe chips (6 h / 12 steps ~50 s). Needs ~1.5 GB free RAM. Commands are serialized
+  (concurrent -> 409); payload commands are refused while a mission runs. Missions use 4 replicas
+  (unmitigated, scrub, Aegis, Aegis+audit), cache accuracy by CRC fingerprint, and allow a disclosed
+  radiation multiplier (1x = Alsat-1 calibrated). At 10x, Aegis can move MORE bytes than 6 h scrubbing
+  (many restores); the bandwidth claim is from the 1x campaigns.
+- Briefing data: `python experiments/export_frontend_data.py --name <campaign>` (writes `frontend/public/data/`,
   replays each seed's fault stream and checks it against recorded flip counts), then in `frontend/`:
   `npm install`, `npm run dev` (http://localhost:5173) or `npm run build` (static site in `dist/`).
   Campaigns without the audit strategy are shown as "pre-fix" (INC-01/02) automatically.
@@ -50,7 +60,7 @@ Design rationale: `AEGIS_RESEARCH_STUDY_AND_PROTOTYPE_BLUEPRINT.md`; prior-art m
 envelope, T2 BN drift, T3 CRC-32, orchestrator) · `aegis/repair` (zstd golden store, restorer, BN
 recalibration) · `aegis/baselines` · `aegis/simulation` (mission harness, confusion analysis) ·
 `aegis/data` (real EuroSAT splits) · `aegis/models/factory.py` (`--arch` backbones) ·
-`aegis/reporting.py` (shared loaders/colors for figures + dashboard).
+`aegis/reporting.py` (shared loaders/colors for figures, report, frontend export).
 
 ## Non-obvious invariants (each was a real bug)
 - **Model input**: checkpoint expects 224 px bicubic-upsampled chips with EuroSAT mean/std, and
@@ -115,6 +125,12 @@ recalibration) · `aegis/baselines` · `aegis/simulation` (mission harness, conf
   chips give wide intervals; MobileNetV2 seed 2 had no damaging fault. `results/main_gpu/` is
   pre-fix; don't cite. Frontend data exported for both final campaigns.
 - Fixed 2026-10-22: `preprocess_chips` built mean/std on CPU, crashing GPU MobileNetV2 training.
+- Fixed 2026-10-23: PyTorch's default thread count (10 on this i7-1355U, 2P+8E cores) ran ResNet-18 ~25x
+  slower than 4 threads. `aegis/runtime.configure_torch_threads()` (default 4, override `AEGIS_TORCH_THREADS`)
+  is called by demo.py, experiment entry points, the console and tests/conftest.py. Earlier CPU timings
+  (e.g. "~35 s/step") predate this. On battery below ~15% Windows throttles a further 30-160x: present plugged in.
+- Added 2026-10-23: live console (above); `HealthReport.candidate_blocks`; `AegisHealthMonitor.copy_calibration_from`
+  (replicas of a clean model skip the 13 s re-calibration); `orbit_model.track_payload/field_grid` (shared by exporter + console).
 - Known limitations: Ranger/BLINK per-inference compute is not charged; the ResNet-18 checkpoint's
   training split is unknown, so its clean accuracy may be optimistic (relative degradation is
   unaffected; the MobileNetV2 path has a verified held-out split).

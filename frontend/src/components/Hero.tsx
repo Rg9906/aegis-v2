@@ -107,7 +107,11 @@ export default function Hero({ campaign, theme }: { campaign: Campaign; theme: s
         )}
 
         <div className="hero-actions">
-          <a className="btn btn-primary" href="#replay">
+          <a className="btn btn-primary btn-live" href="#/console">
+            <span className="mode-live on" aria-hidden="true" />
+            Launch live console
+          </a>
+          <a className="btn" href="#replay">
             Replay the mission
           </a>
           <a className="btn" href="#tradeoff">

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import ModeSwitch from "./ModeSwitch";
 
 const LINKS = [
   ["how", "How it works"],
@@ -72,6 +73,7 @@ export default function Nav({ campaigns, current, onCampaign, theme, onTheme }: 
         ))}
       </div>
       <div className="nav-tools">
+        <ModeSwitch mode="briefing" />
         {campaigns.length > 1 && (
           <label className="select">
             <span className="sr-only">Campaign</span>

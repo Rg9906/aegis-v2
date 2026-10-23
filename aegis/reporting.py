@@ -1,8 +1,9 @@
 """
 Campaign Results Loading and Shared Presentation Constants.
 
-Used by experiments/make_figures.py (static publication figures) and
-dashboard/app.py (Streamlit mission console) so both read results identically.
+Used by experiments/make_figures.py (static publication figures),
+experiments/write_report.py and experiments/export_frontend_data.py so all
+read results identically.
 """
 
 import glob

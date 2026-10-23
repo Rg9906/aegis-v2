@@ -6,20 +6,21 @@ repository root as the working directory.
 ## 1. Requirements
 
 * Python ≥ 3.10 (the tested interpreter is **Python 3.12**). Dependencies: `torch`, `torchvision`, `safetensors`,
-  `zstandard`, `numpy`, `scipy`, `huggingface_hub`, `streamlit`, `matplotlib`, `sgp4`, `ppigrf` (+ `pytest`).
-  The Streamlit dashboard additionally imports `altair` and `pandas`, which `streamlit` pulls in transitively.
-* Node.js + npm for the optional React frontend.
+  `zstandard`, `numpy`, `scipy`, `huggingface_hub`, `matplotlib`, `sgp4`, `ppigrf` (+ `pytest`).
+* Node.js + npm for the React frontend (the project's dashboard).
 * A GPU is optional: CPU campaigns take ~35 s per simulation step with 9 replicas; GPU runs use the Colab notebook.
 
 ### Windows machine notes (author's setup)
-* Use `C:\Users\RG Saran Vishakan\AppData\Local\Microsoft\WindowsApps\python3.12.exe`; the default `python` on `PATH`
-  is an unrelated venv without torch.
+* Use the project venv: `.venv\Scripts\Activate.ps1`, then `python ...` (or call `.venv\Scripts\python.exe` directly).
+  The default `python` on `PATH` is an unrelated venv without torch.
 * Python `requests` fails SSL to huggingface.co here; `curl` works.
 * Set `HF_HUB_OFFLINE=1` so the cached `cm93/resnet18-eurosat` weights load with `local_files_only`.
 
 ## 2. Install
 
 ```bash
+python3.12 -m venv .venv
+.venv\Scripts\Activate.ps1             # PowerShell; bash: source .venv/Scripts/activate
 pip install -r requirements.txt        # or: pip install -e ".[dev]"
 ```
 
@@ -45,7 +46,7 @@ The real-data test skips automatically if `data/` is missing.
 | Report | `python experiments/write_report.py --name <campaign>` |
 | Train MobileNetV2 | `python experiments/train_mobilenet.py --epochs 3 --device cuda` |
 | Transient faults | `python experiments/transient_faults.py` |
-| Streamlit dashboard | `streamlit run dashboard/app.py` |
+| Live console (engine + built UI) | `python -m aegis.console [--open] [--port 8765] [--arch mobilenet_v2]` |
 | Frontend data export | `python experiments/export_frontend_data.py --name <campaign>` |
 | Frontend dev / build | `cd frontend && npm install && npm run dev` / `npm run build` |
 
@@ -107,10 +108,10 @@ download `results_<NAME>.zip` and unzip into local `results/`. An optional secon
 
 **C. Second architecture.** `train_mobilenet.py` (GPU) → `run_campaign.py --arch mobilenet_v2`.
 
-**D. Presentation.** `export_frontend_data.py --name <campaign>` → `cd frontend && npm install && npm run dev`
-(http://localhost:5173) or `npm run build` for a static site in `frontend/dist/`.
-
-**E. Interactive exploration.** `streamlit run dashboard/app.py`.
+**D. Presentation.** `cd frontend && npm install && npm run build`, then `python -m aegis.console --open`: one
+server for the Briefing (recorded campaigns) and the Live console (real engine) at http://127.0.0.1:8765. For UI
+development run `npm run dev` (http://localhost:5173) next to the engine. New campaigns need
+`export_frontend_data.py --name <campaign>` before they appear in the Briefing.
 
 ## 6. Using the library directly
 
@@ -137,11 +138,10 @@ default) so T1 bounds are built from ≥ 100 clean chips. Evaluation chips defau
 
 | Symptom | Likely cause / fix |
 |---|---|
-| `ModuleNotFoundError: torch` | Wrong interpreter; use the Python 3.12 listed above |
+| `ModuleNotFoundError: torch` | Wrong interpreter; activate `.venv` |
 | SSL error contacting huggingface.co | Use `curl` for downloads; set `HF_HUB_OFFLINE=1` |
 | ≈ 18 % or chance accuracy | Wrong input size (must be 224 px) or alphabetical labels |
 | Aegis restores on every step | T1 envelope miscalibrated (needs ≥ 100 clean chips, min/max bounds) |
 | Accuracy stuck at 10 % after BN fault | Campaign predates the upstream-block T3 check ("pre-fix") |
 | Campaign refuses a MobileNetV2 split | Split not inside the checkpoint's held-out sidecar; retrain with that split excluded |
 | Frontend export asserts on flip counts | Fault-stream replay disagrees with recorded telemetry; re-run campaign with the same code version |
-| Dashboard shows fewer strategies | Older campaign JSON lacks newer strategies (handled by `strategies_present`) |
